@@ -1,0 +1,34 @@
+services:
+
+  pick20-db:
+    image: postgres:18
+    expose:
+      - "5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=pick20
+      - POSTGRES_DB=pick20
+    volumes:
+      - pick20database:/var/lib/postgresql/data:z
+    restart: unless-stopped
+  
+  pick20-server:
+    depends_on:
+      - pick20-db
+    build:
+      context: .
+      target: dev
+    image: pick20-server
+    expose:
+      - "8000"
+    volumes:
+      # Mount local source directory to /workdir
+      # allows edits to src to appear within container, and vice versa
+      - ./:/home/workdir:z
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-pick20.settings}
+    restart: unless-stopped
+
+volumes:
+  pick20database:

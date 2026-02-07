@@ -4,21 +4,21 @@ A website to play "Pick 20" during NCAA March Madness.
 
 ## Rules
 
-Each participant will pick 20 teams from the 64 team pool.
+* Each participant will pick 20 teams from the 64 team pool.
 
-All picks must be submitted before the start of the first game on Thursday morning.
+* All picks must be submitted before the start of the first game on Thursday morning.
 
-A player can select “the winner” of each of the First Four games on Tuesday and Wednesday (since these games always match up two teams with identical seeds)
+* A player can select “the winner” of each of the First Four games on Tuesday and Wednesday (since these games always match up two teams with identical seeds)
 
 Points are earned each time one of the selected teams wins a game as follows:
 
-Seeds 1-4: 1 point earned for each win
+* Seeds 1-4: One point earned for each win
 
-Seeds 5-8: 2 points earned for each win
+* Seeds 5-8: Two points earned for each win
 
-Seeds 9-12: 3 points earned for each win
+* Seeds 9-12: Three points earned for each win
 
-Seeds 13-16: 4 points earned for each win
+* Seeds 13-16: Four points earned for each win
 
 
 The pool winner will be the participant who accumulates the most points. 
