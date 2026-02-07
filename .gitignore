@@ -1,0 +1,75 @@
+# Distribution / packaging
+.Python
+.env
+!docker/**/*/.env
+env/
+venv/
+build/
+.venv/
+.ruff_cache/
+.uv_cache/
+
+# Docker Volume
+pick20-data/
+
+# Django
+*.log
+*.pot
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb
+.ipynb_checkpoints
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history
+
+# PyCharm
+.idea/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# binaries
+*.dll
+*.exe
+
+# Backup files
+*.bak
+db_backup
+
+# temp files
+temp*
+*.swp
+
+# Include files in django templates and templatetags
+!templates
+!templatetags
+
+# some sensitive information stored in keys files
+keys.py
