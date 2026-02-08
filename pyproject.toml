@@ -2,6 +2,8 @@
 dependencies = [
   "django-q2",
   "djangorestframework",
+  "djangorestframework-simplejwt",
+  "django-cors-headers",
   "django~=5.2",
   "gunicorn",
   "psycopg2"
