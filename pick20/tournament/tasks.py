@@ -26,7 +26,7 @@ def update_tournament_scores(tournament):
                 output_field=IntegerField(),
             )
         ),
-        # Optimistic Max Potential Score Logic
+        # Optimistic Max Potential Gain Logic
         # Does not account for head-to-head matchups between your picks
         calculated_potential=Sum(
             Case(
