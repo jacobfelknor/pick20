@@ -61,8 +61,13 @@ RUN \
     && apt-get install --no-install-recommends -y \
     # required dev deps,
     unzip vim bat exa \
+    # Install packages required for frontend development
+    yarn nodejs npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+    
+# Update to the latest stable node version
+RUN npm install -g n --ignore-scripts && n lts
 
 USER $USERNAME
 
@@ -73,7 +78,7 @@ RUN \
     && echo 'export PS1="\[\033[38;5;10m\]\u@\h\[$(tput sgr0)\]:\[$(tput sgr0)\]\[\033[38;5;12m\]\w\[$(tput sgr0)\]\\$ \[$(tput sgr0)\]"' >> ${PICK20_HOME}/.bashrc
 
 
-from pick20_base as prod
+FROM pick20_base as prod
 
 # due to the nature of our production mounts, UV must use copy mode
 # .venv and uv_cache dir are on separate mounts, where as on dev its a single mount at '.'
