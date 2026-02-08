@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     "tournament.apps.TournamentConfig",
+    "accounts.apps.AccountsConfig"
 ]
 
 MIDDLEWARE = [

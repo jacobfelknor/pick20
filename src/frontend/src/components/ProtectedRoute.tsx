@@ -1,7 +1,8 @@
 import { Navigate } from "react-router-dom";
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "../api";
+import { Loader } from "@mantine/core";
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -60,11 +61,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     // IMPORTANT: While isAuthorized is null, show nothing or a spinner.
     // This prevents the "bounce" to login while the check is happening.
     if (isAuthorized === null) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                Loading...
-            </div>
-        );
+        return <Loader color="blue" />;
     }
 
     return isAuthorized ? <>{children}</> : <Navigate to="/login" />;

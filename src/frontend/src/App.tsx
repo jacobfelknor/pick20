@@ -4,23 +4,11 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./pages/Register";
 
-function RegisterAndLogout() {
-  localStorage.clear()
-  return <Register />
-}
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         {/* Catch-all: redirect random URLs to login */}
