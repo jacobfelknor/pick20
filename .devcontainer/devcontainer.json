@@ -22,11 +22,14 @@
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
-		// 3000,
+		5173,		
 		8000,
 		"pick20-db:5432"
 	],
 	"portsAttributes": {
+		"5173": {
+			"label": "Vite Server"
+		},
 		"pick20-db:5432": {
 			"label": "Dev PostgreSQL Server"
 		},
@@ -39,7 +42,7 @@
 	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
 	// "shutdownAction": "none",
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "src/backend/pick20/init-dev.sh",
+	"postCreateCommand": "src/backend/init-dev.sh",
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
