@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { AppLayout } from "./components/AppLayout";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         {/* The Outlet is where the child routes (Dashboard, etc.) will render */}
-        <Outlet /> 
+        <AppLayout /> 
       </ProtectedRoute>
     ),
     children: [
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: <div style={{ padding: '20px' }}>Skel User Profile Page</div>,
+      },
+      {
+        path: "/settings",
+        element: <div style={{ padding: '20px' }}>Skel User Settings Page</div>,
       },
     ],
   },

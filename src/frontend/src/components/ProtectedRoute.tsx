@@ -45,7 +45,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         const refresh = localStorage.getItem("refresh");
         try {
             // We call the direct axios/api refresh here
-            const res = await api.post("/api/token/refresh/", { refresh });
+            const res = await api.post("/api/auth/token/refresh/", { refresh });
             if (res.status === 200) {
                 localStorage.setItem("access", res.data.access);
                 setIsAuthorized(true);

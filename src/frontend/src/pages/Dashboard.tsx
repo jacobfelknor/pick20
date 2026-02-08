@@ -1,22 +1,31 @@
-import { Container, Title, Text, Button } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
+import { Title, Text, Stack, Paper } from "@mantine/core";
 
 function Dashboard() {
-    const navigate = useNavigate();
+    // example fetching logic
+    // function fetchNotes() {
+    //     setLoading(true);
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
-    };
+    //     api.get<Note[]>("/api/notes/")
+    //         .then((res) => {
+    //             setNotes(res.data);
+    //         })
+    //         .catch((error) => {
+    //             console.error("Failed to fetch notes:", error);
+    //         })
+    //         .finally(() => {
+    //             setLoading(false);
+    //         });
+    // };
 
     return (
-        <Container mt="xl">
-            <Title>Dashboard</Title>
-            <Text mt="md">Hello World! You are authenticated.</Text>
-            <Button color="red" mt="md" onClick={handleLogout}>
-                Logout
-            </Button>
-        </Container>
+        <Stack>
+            <Title order={2}>Overview</Title>
+            <Text c="dimmed">Welcome back to your dashboard.</Text>
+
+            <Paper withBorder p="xl" radius="md">
+                <Text>Your protected data will show up here.</Text>
+            </Paper>
+        </Stack>
     );
 }
 
