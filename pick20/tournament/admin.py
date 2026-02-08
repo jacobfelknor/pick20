@@ -68,9 +68,19 @@ class TournamentTeamAdmin(admin.ModelAdmin):
 
 @admin.register(Entry)
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ("user", "get_user_full_name", "user__email", "tournament", "get_score_display", "picks_count")
-    list_filter = ("tournament",)
+    list_display = (
+        "user",
+        "get_user_full_name",
+        "user__email",
+        "tournament",
+        "score",
+        "potential_score",
+        "still_alive",
+        "picks_count",
+    )
+    list_filter = ("tournament", "still_alive")
     search_fields = ("user__username", "user__email")
+    ordering = ("-score", "-potential_score")
 
     # Essential for ManyToMany fields with 64+ options
     filter_horizontal = ("picks",)
@@ -78,10 +88,6 @@ class EntryAdmin(admin.ModelAdmin):
     # Use raw id fields or autocomplete if you have thousands of users,
     # but for a pool, standard selects are usually fine.
     # autocomplete_fields = ['first_four_1', 'first_four_2', 'first_four_3', 'first_four_4']
-
-    @admin.display(description="Current Score")
-    def get_score_display(self, obj):
-        return obj.score
 
     @admin.display(description="User's Name")
     def get_user_full_name(self, obj):

@@ -113,7 +113,10 @@ class Entry(models.Model):
 
     # The 20 selected teams
     picks = models.ManyToManyField(TournamentTeam, blank=True)
-    score = models.IntegerField("Score", default=0)
+    score = models.PositiveIntegerField("Current Score", default=0, db_index=True)
+    # optimistic max: does not account for head-to-head matchups between picks
+    potential_score = models.PositiveIntegerField("Optimistic Max Potential Score", default=0, db_index=True)
+    still_alive = models.BooleanField("Still Alive", default=True)
 
     class Meta:
         unique_together = ("user", "tournament")  # One entry per user per year
