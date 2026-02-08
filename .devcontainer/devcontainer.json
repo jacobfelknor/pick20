@@ -61,6 +61,7 @@
 				"grapecity.gc-excelviewer",
 				"ms-azuretools.vscode-docker",
 				"analytic-signal.preview-pdf",
+				"ms-vscode.vscode-typescript-next"
 			]
 		}
 	},

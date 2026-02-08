@@ -5,24 +5,23 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 
-class RegisterView(APIView):
-    permission_classes = (AllowAny,)
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        email = request.data.get('email')
+from rest_framework import generics
+from rest_framework.serializers import ModelSerializer
 
-        if not username or not password:
-            return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
 
-        if User.objects.filter(username=username).exists():
-            return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-        elif User.objects.filter(email=email).exists():
-            return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
-        User.objects.create_user(username=username, password=password, email=email)
-        return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny] # Allow anyone to register
 
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
