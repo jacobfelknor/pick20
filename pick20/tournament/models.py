@@ -56,7 +56,7 @@ class TournamentTeam(models.Model):
     # if a school secondary is defined, display team as "school / school_secondary"
     # pick20 admin should update this object's primary school to the winner after the first four
     # and remove the secondary school
-    school_secondary = models.ForeignKey(School, on_delete=models.PROTECT, null=True)
+    school_secondary = models.ForeignKey(School, on_delete=models.PROTECT, blank=True, null=True)
 
     # The data specific to this year
     seed = models.IntegerField()  # 1 through 16
@@ -67,7 +67,7 @@ class TournamentTeam(models.Model):
 
     # THE CORE TRACKING FIELD
     # Instead of Game models, we just increment this integer.
-    wins = models.IntegerField(default=0)
+    wins = models.PositiveIntegerField(default=0)
     is_eliminated = models.BooleanField(default=False)
 
     class Meta:
