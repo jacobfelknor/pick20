@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
   {
     element: (
       <ProtectedRoute>
-        {/* The Outlet is where the child routes (Dashboard, etc.) will render */}
+        {/* The AppLayout is where the child routes will render */}
         <AppLayout /> 
       </ProtectedRoute>
     ),
