@@ -1,8 +1,9 @@
 # Create your views here.
 
-from rest_framework import generics, permissions, exceptions
+from rest_framework import generics, permissions
 from .models import Entry
 from .serializers import EntrySerializer
+from .permissions import IsOwnerAdminOrTournamentLocked
 
 
 class EntryListView(generics.ListAPIView):
@@ -22,30 +23,25 @@ class EntryListView(generics.ListAPIView):
 
 class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EntrySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsOwnerAdminOrTournamentLocked]
     lookup_field = None  # We are handling lookup manually via kwargs
 
+    def get_queryset(self):
+        # Always use optimization here to cover all bases
+        return Entry.objects.select_related("user", "tournament").prefetch_related("picks")
+
     def get_object(self):
+        queryset = self.get_queryset()
+
         tournament_id = self.kwargs.get("tournament_id")
         user_id = self.kwargs.get("user_id")
-        current_user = self.request.user
 
-        # Optimization: Define the queryset with related data
-        queryset = Entry.objects.select_related("user").prefetch_related("picks")
+        # Look up object by the URL kwargs
+        obj = generics.get_object_or_404(queryset, tournament_id=tournament_id, user_id=user_id)
 
-        # Fetch the specific entry
-        try:
-            entry = queryset.get(tournament_id=tournament_id, user_id=user_id)
-        except Entry.DoesNotExist:
-            raise exceptions.NotFound("No entry found for this user in this tournament.")
-
-        # Permission Check:
-        # Define who can view entries that aren't their own
-        # TODO: This should be a mixin that gets reused and also accounts for if the tournament is locked
-        #       Once tournament unlocks, all users should be able to see all entries for this user
-        if current_user.id != user_id and not current_user.is_superuser:
-            if not entry.tournament.is_locked:
-                raise exceptions.PermissionDenied("You cannot view another user's entry.")
+        # triggers check with IsOwnerAdminOrTournamentLocked
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def perform_update(self, serializer):
         # still bound by the 'is_locked' logic in the serializer.
