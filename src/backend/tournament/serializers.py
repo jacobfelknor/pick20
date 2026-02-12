@@ -1,14 +1,32 @@
 from rest_framework import serializers
-from .models import Entry
+from .models import Entry, Tournament
+from accounts.serializers import UserSerializer
+
+
+class TournamentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tournament
+        fields = "__all__"
+        read_only_fields = ["year", "start_date"]
 
 
 class EntrySerializer(serializers.ModelSerializer):
-    # We make user read-only because we'll pull it from the request context
-    username = serializers.ReadOnlyField(source="user.username")
+    user_detail = UserSerializer(source="user", read_only=True)
+    tournament_detail = TournamentSerializer(source="tournament", read_only=True)
 
     class Meta:
         model = Entry
-        fields = ["id", "user", "username", "tournament", "picks", "score", "potential_score", "still_alive"]
+        fields = [
+            "id",
+            "user",
+            "user_detail",
+            "tournament",
+            "tournament_detail",
+            "picks",
+            "score",
+            "potential_score",
+            "still_alive",
+        ]
         read_only_fields = ["score", "potential_score", "still_alive"]
 
     def validate(self, data):
@@ -25,3 +43,7 @@ class EntrySerializer(serializers.ModelSerializer):
         if len(value) > 20:
             raise serializers.ValidationError("You can only select up to 20 teams.")
         return value
+
+
+class TournamentTeamSerializer(serializers.ModelSerializer):
+    pass
