@@ -1,7 +1,7 @@
-import { AppShell, Burger, Group, NavLink, Title, Button, Text, NativeSelect } from '@mantine/core';
+import { AppShell, Burger, Group, NavLink, Title, Button, Text, NativeSelect, Image } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
 
@@ -36,6 +36,18 @@ export function AppLayout() {
       }))
   });
 
+  // Fallback: If no selection exists in local storage, select the first one from API
+  useEffect(() => {
+    if (!tournament && data && data.length > 0) {
+      const firstId = data[0].value;
+      setTournament(firstId);
+      localStorage.setItem('selectedTournament', firstId);
+    }
+  }, [data, tournament]);
+
+
+  // consider using the useLocalStorage() hook from @mantine/hooks
+  // rather than useState + this handler
   const handleTournamentChange = (value: string) => {
     setTournament(value);
     localStorage.setItem('selectedTournament', value);
@@ -56,6 +68,12 @@ export function AppLayout() {
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={burgerOpened} onClick={burgerToggle} hiddenFrom="sm" size="sm" />
+            <Image
+              src="/favicon.png" // Replace with your actual image path or URL
+              alt="Pick20 Logo"
+              h={30}         // Adjust height to match your title size
+              w="auto"
+            />
             <Title order={3}>Felknor's Pick20</Title>
           </Group>
           <NativeSelect
@@ -77,9 +95,14 @@ export function AppLayout() {
           Navigation
         </Text>
         <NavLink
-          label="Dashboard"
-          active={location.pathname === '/'}
-          onClick={() => handleNavigate('/')}
+          label="Entries"
+          active={location.pathname === '/entries'}
+          onClick={() => handleNavigate('/entries')}
+        />
+        <NavLink
+          label="Standings"
+          active={location.pathname === '/standings'}
+          onClick={() => alert("TODO!")}
         />
         <NavLink
           label="Profile"

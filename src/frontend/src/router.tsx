@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import Entries from "./pages/Entries";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
 
@@ -21,13 +21,13 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         {/* The AppLayout is where the child routes will render */}
-        <AppLayout /> 
+        <AppLayout />
       </ProtectedRoute>
     ),
     children: [
       {
-        path: "/",
-        element: <Dashboard />,
+        path: "/entries",
+        element: <Entries />,
       },
       {
         path: "/profile",

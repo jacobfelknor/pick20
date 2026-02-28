@@ -17,7 +17,7 @@ function Login() {
             const res = await api.post("/api/auth/token/", { username, password });
             localStorage.setItem("access", res.data.access);
             localStorage.setItem("refresh", res.data.refresh);
-            navigate("/"); // Redirect to dashboard
+            navigate("/entries"); // Redirect to dashboard
         } catch (error) {
             alert("Login failed! Check your credentials.");
         } finally {
@@ -26,8 +26,8 @@ function Login() {
     };
 
     // redirect to dashboard if already logged in
-    if(localStorage.getItem("access")){
-        navigate("/");
+    if (localStorage.getItem("access")) {
+        navigate("/entries");
     }
 
     return (
@@ -42,18 +42,18 @@ function Login() {
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={handleSubmit}>
-                    <TextInput 
-                        label="Username" 
-                        placeholder="Your username" 
-                        required 
+                    <TextInput
+                        label="Username"
+                        placeholder="Your username"
+                        required
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                     />
-                    <PasswordInput 
-                        label="Password" 
-                        placeholder="Your password" 
-                        required 
-                        mt="md" 
+                    <PasswordInput
+                        label="Password"
+                        placeholder="Your password"
+                        required
+                        mt="md"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />

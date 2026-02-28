@@ -1,7 +1,7 @@
 import { Title, Text, Stack, Paper } from "@mantine/core";
 import { useOutletContext } from "react-router-dom";
 
-function Dashboard() {
+function Entries() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
 
@@ -18,16 +18,17 @@ function Dashboard() {
 
     return (
         <Stack>
-            <Title order={2}>Overview</Title>
-            <Text c="dimmed">Welcome back to your dashboard.</Text>
+            <Title order={2}>Entries for Tournament {tournament}</Title>
 
             <Text>Viewing data for Tournament ID: {tournament || 'None selected'}</Text>
 
             <Paper withBorder p="xl" radius="md">
-                <Text>Your protected data will show up here.</Text>
+                <Text>I need to put an entry table here.</Text>
+                <Text>If the tournament is locked, or superuser, show all entries</Text>
+                <Text>Otherwise, show just this user's entries</Text>
             </Paper>
         </Stack>
     );
 }
 
-export default Dashboard;
+export default Entries;
