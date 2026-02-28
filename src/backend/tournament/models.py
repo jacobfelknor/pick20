@@ -108,6 +108,7 @@ class Entry(models.Model):
     The User's specific entry for a specific year.
     """
 
+    name = models.CharField(max_length=100)  # TODO: make this a default like, "User Name N"
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
 
@@ -119,7 +120,7 @@ class Entry(models.Model):
     still_alive = models.BooleanField("Still Alive", default=True)
 
     class Meta:
-        unique_together = ("user", "tournament")  # One entry per user per year
+        unique_together = ("name", "user", "tournament")  # User's can have multiple entries per year
         verbose_name_plural = "Entries"
 
     def __str__(self):

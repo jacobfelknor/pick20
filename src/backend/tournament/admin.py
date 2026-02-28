@@ -70,6 +70,7 @@ class TournamentTeamAdmin(admin.ModelAdmin):
 class EntryAdmin(admin.ModelAdmin):
     list_display = (
         "user",
+        "name",
         "get_user_full_name",
         "user__email",
         "tournament",
@@ -79,15 +80,11 @@ class EntryAdmin(admin.ModelAdmin):
         "picks_count",
     )
     list_filter = ("tournament", "still_alive")
-    search_fields = ("user__username", "user__email")
+    search_fields = ("name", "user__username", "user__email")
     ordering = ("-score", "-potential_score")
 
     # Essential for ManyToMany fields with 64+ options
     filter_horizontal = ("picks",)
-
-    # Use raw id fields or autocomplete if you have thousands of users,
-    # but for a pool, standard selects are usually fine.
-    # autocomplete_fields = ['first_four_1', 'first_four_2', 'first_four_3', 'first_four_4']
 
     @admin.display(description="User's Name")
     def get_user_full_name(self, obj):
@@ -117,12 +114,3 @@ class EntryAdmin(admin.ModelAdmin):
         if db_field.name == "picks" and hasattr(request, "_obj_") and request._obj_:
             kwargs["queryset"] = TournamentTeam.objects.filter(tournament=request._obj_.tournament)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """
-        Filters the 'First Four' dropdowns to only show teams from the correct year.
-        """
-        if db_field.name in ["first_four_1", "first_four_2", "first_four_3", "first_four_4"]:
-            if hasattr(request, "_obj_") and request._obj_:
-                kwargs["queryset"] = TournamentTeam.objects.filter(tournament=request._obj_.tournament)
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)

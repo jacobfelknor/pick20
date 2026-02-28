@@ -33,11 +33,14 @@ class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         queryset = self.get_queryset()
 
-        tournament_id = self.kwargs.get("tournament_id")
-        user_id = self.kwargs.get("user_id")
+        entry_id = self.kwargs.get("entry_id")
+
+        # tournament_id = self.kwargs.get("tournament_id")
+        # user_id = self.kwargs.get("user_id")
 
         # Look up object by the URL kwargs
-        obj = generics.get_object_or_404(queryset, tournament_id=tournament_id, user_id=user_id)
+        # obj = generics.get_object_or_404(queryset, tournament_id=tournament_id, user_id=user_id)
+        obj = generics.get_object_or_404(queryset, pk=entry_id)
 
         # triggers check with IsOwnerAdminOrTournamentLocked
         self.check_object_permissions(self.request, obj)
