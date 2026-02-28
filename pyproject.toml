@@ -6,7 +6,7 @@ dependencies = [
   "django-cors-headers",
   "django~=5.2",
   "gunicorn",
-  "psycopg2"
+  "psycopg2",
 ]
 description = "A Pick 20 Pool website for NCAA March Madness"
 name = "pick20-pool"
@@ -15,9 +15,7 @@ requires-python = "==3.11.*"
 version = "0.1.0"
 
 [dependency-groups]
-dev = [
-  "bump-my-version>=1.1.2",
-]
+dev = ["bump-my-version>=1.1.2"]
 
 [[tool.uv.index]]
 default = true
@@ -25,18 +23,13 @@ name = "pypi"
 url = "https://pypi.org/simple"
 
 [tool.ruff]
-exclude = [
-  "**/*__init__.py",
-  "**/migrations/*",
-  ".venv/*",
-  "build/*",
-  "dist/*",
-]
+exclude = ["**/*__init__.py", "**/migrations/*", ".venv/*", "build/*", "dist/*"]
 fix = true
 line-length = 120
 src = ["pick20/"]
 
 [tool.ruff.lint]
+extend-select = ["I"]
 ignore = ["C901", "E203", "E731", "F403", "F405"]
 
 

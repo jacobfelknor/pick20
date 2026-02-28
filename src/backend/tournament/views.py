@@ -1,8 +1,8 @@
 # Create your views here.
 
 from rest_framework import generics, permissions
-from . import models
-from . import serializers
+
+from . import models, serializers
 from .permissions import IsOwnerAdminOrTournamentLocked
 
 

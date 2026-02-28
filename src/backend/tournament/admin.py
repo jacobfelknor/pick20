@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import School, Tournament, TournamentTeam, Entry
+from .models import Entry, School, Tournament, TournamentTeam
 from .tasks import update_tournament_scores
 
 

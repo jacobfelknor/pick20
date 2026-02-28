@@ -1,4 +1,5 @@
-from django.db.models import Sum, Case, When, F, IntegerField, Value, Max
+from django.db.models import Case, F, IntegerField, Max, Sum, Value, When
+
 from .models import Entry
 
 

@@ -1,6 +1,7 @@
-from rest_framework import serializers
-from .models import Entry, Tournament
 from accounts.serializers import UserSerializer
+from rest_framework import serializers
+
+from .models import Entry, Tournament
 
 
 class TournamentSerializer(serializers.ModelSerializer):
