@@ -116,6 +116,8 @@ class Entry(models.Model):
     # optimistic max: does not account for head-to-head matchups between picks
     potential_score = models.PositiveIntegerField("Optimistic Max Potential Score", default=0, db_index=True)
     still_alive = models.BooleanField("Still Alive", default=True)
+    # TODO: add payment tracking
+    # payment_received = models.BooleanField("Payment Received", default=False)
 
     class Meta:
         unique_together = ("name", "user", "tournament")  # User's can have multiple entries per year

@@ -36,12 +36,14 @@ export default function EntryTable({ tournament }: { tournament: string }) {
             columns={[
                 { accessor: 'name', sortable: true },
                 { accessor: 'score', textAlign: 'right', sortable: true },
-                { accessor: 'potential_score', textAlign: 'right', sortable: true },
-                { accessor: 'still_alive', textAlign: 'right', sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
+                { accessor: 'potential_score', title: "Optimistic Potential Score", textAlign: 'right', sortable: true },
+                { accessor: 'teams_remaining_count', title: "Teams Remaining", textAlign: 'right', sortable: true },
+                { accessor: 'still_alive', title: "Still Alive", textAlign: 'right', sortable: true, render: ({ still_alive }: { still_alive: boolean }) => <CheckOrXIcon value={still_alive} /> },
+                // TODO: add col for admins only that represents "payment received"
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
-            // Ensure the table has a height or it might look "wrong"
+            // Ensure the table has a height to show the "no data" icon
             minHeight={150}
         />
     );

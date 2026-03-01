@@ -100,19 +100,14 @@ export function AppLayout() {
           onClick={() => handleNavigate('/entries')}
         />
         <NavLink
-          label="Standings"
-          active={location.pathname === '/standings'}
-          onClick={() => alert("TODO!")}
+          label="Schools"
+          active={location.pathname === '/Schools'}
+          onClick={() => handleNavigate('/schools')}
         />
         <NavLink
           label="Profile"
           active={location.pathname === '/profile'}
           onClick={() => handleNavigate('/profile')}
-        />
-        <NavLink
-          label="Settings"
-          active={location.pathname === '/settings'}
-          onClick={() => handleNavigate('/settings')}
         />
       </AppShell.Navbar>
 

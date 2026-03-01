@@ -34,8 +34,8 @@ const router = createBrowserRouter([
         element: <div style={{ padding: '20px' }}>Skel User Profile Page</div>,
       },
       {
-        path: "/settings",
-        element: <div style={{ padding: '20px' }}>Skel User Settings Page</div>,
+        path: "/schools",
+        element: <div style={{ padding: '20px' }}>Skel Schools Page</div>,
       },
     ],
   },
