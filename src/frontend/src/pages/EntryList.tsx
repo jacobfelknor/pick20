@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useMemo } from "react";
 
-function Entries() {
+function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
 
@@ -35,4 +35,4 @@ function Entries() {
     );
 }
 
-export default Entries;
+export default EntryList;

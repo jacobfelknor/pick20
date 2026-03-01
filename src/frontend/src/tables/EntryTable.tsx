@@ -4,9 +4,12 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
+import { useNavigate } from "react-router-dom";
 
 
 export default function EntryTable({ tournament }: { tournament: string }) {
+    const navigate = useNavigate();
+
     const { data: entries, isLoading } = useQuery({
         queryKey: ['entries', tournament],
         queryFn: () => api.get(`/api/tournament/${tournament}/entries/`).then(res => res.data),
@@ -31,6 +34,7 @@ export default function EntryTable({ tournament }: { tournament: string }) {
             withColumnBorders
             striped
             highlightOnHover
+            textSelectionDisabled // don't trick users into thinking they can copy. The row click event fires if trying to highlight
             fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
@@ -41,6 +45,11 @@ export default function EntryTable({ tournament }: { tournament: string }) {
                 { accessor: 'still_alive', title: "Still Alive", textAlign: 'right', sortable: true, render: ({ still_alive }: { still_alive: boolean }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}
+            onRowClick={({ record, index, event }) => {
+                // TODO: restrict access to this navigate unless the tournament is locked or user is superuser
+                // TODO: if tournament is unlocked, this should bring you to an edit field instead of a static view page
+                navigate(`/entry/${record.id}`);
+            }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
             // Ensure the table has a height to show the "no data" icon

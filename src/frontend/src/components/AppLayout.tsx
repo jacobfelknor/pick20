@@ -97,7 +97,7 @@ export function AppLayout() {
         </Text>
         <NavLink
           label="Entries"
-          active={location.pathname === '/entries'}
+          active={location.pathname === '/entries' || location.pathname.includes("/entry")}
           onClick={() => handleNavigate('/entries')}
         />
         <NavLink

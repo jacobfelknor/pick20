@@ -1,9 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Entries from "./pages/Entries";
+import EntryList from "./pages/EntryList";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
+import EntryDetail from "./pages/EntryDetail";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -27,7 +28,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/entries",
-        element: <Entries />,
+        element: <EntryList />,
+      },
+      {
+        path: "/entry/:id",
+        element: <EntryDetail />
       },
       {
         path: "/profile",
