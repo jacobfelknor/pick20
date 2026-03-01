@@ -100,11 +100,12 @@ export function AppLayout() {
           active={location.pathname === '/entries' || location.pathname.includes("/entry")}
           onClick={() => handleNavigate('/entries')}
         />
-        <NavLink
+        {/* TODO: add schools */}
+        {/* <NavLink
           label="Schools"
           active={location.pathname === '/schools'}
           onClick={() => handleNavigate('/schools')}
-        />
+        /> */}
         <NavLink
           label="Profile"
           active={location.pathname === '/profile'}

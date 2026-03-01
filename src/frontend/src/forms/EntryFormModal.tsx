@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, Button, Group, Text, Stack, TextInput } from '@mantine/core';
-import { DataTable } from 'mantine-datatable';
+import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IconCheck, IconDeviceFloppy } from '@tabler/icons-react';
 import api from '../api';
 import { notifications } from '@mantine/notifications';
+import { sortBy } from 'lodash';
 
 interface EntryFormModalProps {
     opened: boolean;
@@ -90,6 +91,18 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
     // NOTE: selecting less than 20 teams is allowed, but not advised
     const isValid = name.length > 0 && selectedTeams.length <= 20;
 
+    const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
+        columnAccessor: 'seed',
+        direction: 'asc',
+    });
+
+    // This recalculates automatically when 'entryPicks' or 'sortStatus' changes
+    const records = useMemo(() => {
+        if (!teams) return [];
+        const data = sortBy(teams, sortStatus.columnAccessor);
+        return sortStatus.direction === 'desc' ? data.reverse() : data;
+    }, [teams, sortStatus]);
+
     return (
         <Modal
             opened={opened}
@@ -118,16 +131,21 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
                     textSelectionDisabled
                     borderRadius="sm"
                     height={400}
-                    records={teams || []}
+                    records={records || []}
                     fetching={isLoading}
                     columns={[
                         // TODO: move display logic for secondary schools to serializer/model rather than on the client
-                        { accessor: 'school_name', title: 'Team', render: (r: any) => r.school_secondary ? `${r.school_secondary_name} / ${r.school_secondary_name}` : r.school_name },
-                        { accessor: 'seed', title: 'Seed', width: 70 },
-                        { accessor: 'region', title: 'Region' },
+                        { accessor: 'seed', title: 'Seed', width: 70, sortable: true },
+                        { accessor: 'region', title: 'Region', sortable: true },
+                        { accessor: 'name_display', title: 'Team', sortable: true },
+                        { accessor: 'points_per_win', title: 'Points per Win', sortable: true },
+                        { accessor: 'optimistic_max_points', title: 'Maximum Points', sortable: true },
+
                     ]}
                     selectedRecords={selectedTeams}
                     onSelectedRecordsChange={setSelectedTeams}
+                    sortStatus={sortStatus}
+                    onSortStatusChange={setSortStatus}
                 // logic to limit selection or show warning could go here
                 />
 

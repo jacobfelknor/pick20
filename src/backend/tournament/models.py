@@ -96,10 +96,14 @@ class TournamentTeam(models.Model):
         ordering = ["region", "seed"]
 
     def __str__(self):
+        return f"{self.name_display} ({self.seed}) - {self.tournament.year}"
+
+    @property
+    def name_display(self):
         name_display = self.school.name
         if self.school_secondary:
             name_display += f" / {self.school_secondary.name}"
-        return f"{name_display} ({self.seed}) - {self.tournament.year}"
+        return name_display
 
     @property
     def points_per_win(self):
