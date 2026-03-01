@@ -1,7 +1,7 @@
 from accounts.serializers import UserSerializer
 from rest_framework import serializers
 
-from .models import Entry, Tournament
+from .models import Entry, Tournament, TournamentTeam
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -11,10 +11,32 @@ class TournamentSerializer(serializers.ModelSerializer):
         read_only_fields = ["year", "start_date", "is_locked"]
 
 
+class TournamentTeamSerializer(serializers.ModelSerializer):
+    school_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TournamentTeam
+        fields = [
+            "school",
+            "school_name",
+            "seed",
+            "region",
+            "wins",
+            "is_eliminated",
+            "total_points_earned",
+            "optimistic_max_points",
+            "optimistic_potential_points_remaining",
+        ]
+
+    def get_school_name(self, obj):
+        return obj.school.name
+
+
 class EntrySerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
     tournament_detail = TournamentSerializer(source="tournament", read_only=True)
     teams_remaining_count = serializers.SerializerMethodField()
+    picks_detail = TournamentTeamSerializer(source="picks", read_only=True, many=True)
 
     class Meta:
         model = Entry
@@ -26,8 +48,10 @@ class EntrySerializer(serializers.ModelSerializer):
             "tournament",
             "tournament_detail",
             "picks",
+            "picks_detail",
             "score",
             "potential_score",
+            "potential_score_remaining",
             "still_alive",
             "teams_remaining_count",
         ]
@@ -51,7 +75,3 @@ class EntrySerializer(serializers.ModelSerializer):
     def get_teams_remaining_count(self, obj):
         # This filters the ManyToMany relationship for this specific entry
         return obj.picks.filter(is_eliminated=False).count()
-
-
-class TournamentTeamSerializer(serializers.ModelSerializer):
-    pass

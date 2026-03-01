@@ -41,6 +41,8 @@ class TournamentTeam(models.Model):
     This is the 'Pickable' item.
     """
 
+    MAX_WINS = 6  # assumes a 64 team field
+
     # Inner class for clean organization of choices
     class Region(models.TextChoices):
         EAST = "East", "East"
@@ -100,6 +102,17 @@ class TournamentTeam(models.Model):
         """
         return self.points_per_win * self.wins
 
+    @property
+    def optimistic_max_points(self):
+        if self.is_eliminated:
+            return self.total_points_earned
+        else:
+            return self.total_points_earned + (self.MAX_WINS - self.wins) * self.points_per_win
+
+    @property
+    def optimistic_potential_points_remaining(self):
+        return self.optimistic_max_points - self.total_points_earned
+
 
 class Entry(models.Model):
     """
@@ -152,3 +165,7 @@ class Entry(models.Model):
             total += team.total_points_earned
 
         return total
+
+    @property
+    def potential_score_remaining(self):
+        return self.potential_score - self.score

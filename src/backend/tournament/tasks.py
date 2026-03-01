@@ -1,6 +1,8 @@
 from django.db.models import Case, F, IntegerField, Max, Sum, Value, When
 
-from .models import Entry
+from .models import Entry, TournamentTeam
+
+# MAX_WINS = 6  # 64 team field tournament depth
 
 
 def update_tournament_scores(tournament):
@@ -10,8 +12,6 @@ def update_tournament_scores(tournament):
 
     TODO: generalize "rules" so we don't repeat them here and in models.py
     """
-
-    MAX_WINS = 6  # 64 team field tournament depth
 
     # 1. Calculate the score using SQL aggregation logic
     # This matches your specific Seed -> Points rules
@@ -34,10 +34,10 @@ def update_tournament_scores(tournament):
                 # If team is eliminated, they contribute 0 to future potential
                 When(picks__is_eliminated=True, then=Value(0)),
                 # If active, they could win (MAX_WINS - current_wins) more games
-                When(picks__seed__range=(13, 16), then=(Value(MAX_WINS) - F("picks__wins")) * 4),
-                When(picks__seed__range=(9, 12), then=(Value(MAX_WINS) - F("picks__wins")) * 3),
-                When(picks__seed__range=(5, 8), then=(Value(MAX_WINS) - F("picks__wins")) * 2),
-                When(picks__seed__range=(1, 4), then=(Value(MAX_WINS) - F("picks__wins")) * 1),
+                When(picks__seed__range=(13, 16), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 4),
+                When(picks__seed__range=(9, 12), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 3),
+                When(picks__seed__range=(5, 8), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 2),
+                When(picks__seed__range=(1, 4), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 1),
                 default=0,
                 output_field=IntegerField(),
             )
