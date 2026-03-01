@@ -4,6 +4,7 @@ import { DataTable } from 'mantine-datatable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IconCheck, IconDeviceFloppy } from '@tabler/icons-react';
 import api from '../api';
+import { notifications } from '@mantine/notifications';
 
 interface EntryFormModalProps {
     opened: boolean;
@@ -42,16 +43,41 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
     }, [entry, opened, teams]); // Added teams as a dependency
 
     const mutation = useMutation({
+        // 1. The actual "Work" function
         mutationFn: (data: any) => {
+            // If we have an 'entry', we use PATCH (update). If not, POST (create).
             return entry
                 ? api.patch(`/api/entries/${entry.id}/`, data)
                 : api.post(`/api/entries/`, { ...data, tournament: tournamentId });
         },
+        // 2. The "What happened?" logic
         onSuccess: () => {
+            // Tell the cache: "The 'entries' list is now old news. Go fetch the fresh data!"
             queryClient.invalidateQueries({ queryKey: ['entries'] });
+            notifications.show({
+                title: 'Success!',
+                message: `Entry ${entry ? 'updated' : 'created'} successfully.`,
+                color: 'green',
+            });
+            // Close the modal because we are done
             onClose();
         },
+        // 3. The "Error handler" logic
+        onError: (error: any) => {
+            // Dig out the error message from the Django response
+            const serverMessage = error.response?.data?.detail ||
+                error.response?.data?.non_field_errors?.[0] ||
+                "Something went wrong. Please try again.";
+
+            notifications.show({
+                title: 'Submission Failed',
+                message: serverMessage,
+                color: 'red',
+                autoClose: 5000,
+            });
+        },
     });
+
 
     const handleSubmit = () => {
         mutation.mutate({
