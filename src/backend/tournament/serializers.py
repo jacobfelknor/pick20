@@ -7,8 +7,8 @@ from .models import Entry, Tournament
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = "__all__"
-        read_only_fields = ["year", "start_date"]
+        fields = ["id", "year", "start_date", "is_locked"]
+        read_only_fields = ["year", "start_date", "is_locked"]
 
 
 class EntrySerializer(serializers.ModelSerializer):
