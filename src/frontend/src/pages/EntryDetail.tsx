@@ -3,7 +3,7 @@ import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircl
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
 import api from "../api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntryFormModal } from "../forms/EntryFormModal";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -13,21 +13,28 @@ const EntryDetail = () => {
     const navigate = useNavigate();
 
     const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
+    const queryClient = useQueryClient();
 
     // TOOO: based on which tournament this entry belongs to, set the tournament dropdown in navbar?
     //       additionally, should the url to include the tournament id?
 
     const { data: entryDetail, isLoading } = useQuery({
         queryKey: ['entryDetail', id],
-        queryFn: () => api.get(`/api/entry/${id}/`).then(res => res.data),
+        queryFn: () => api.get(`/api/entries/${id}/`).then(res => res.data),
         enabled: !!id,
     });
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
-        queryKey: ['stats', entryDetail?.tournament],
+        queryKey: ['tournamentDetail', entryDetail?.tournament],
         queryFn: () => api.get(`/api/tournament/${entryDetail?.tournament}/`).then(res => res.data),
         enabled: !!entryDetail?.tournament,
     });
+
+    const closeEntryCreateModalAndReload = () => {
+        closeEntryCreateModal();
+        // query from PicksTable
+        queryClient.invalidateQueries({ queryKey: ['entryDetail', id] });
+    }
 
     return (
         <div style={{ padding: '20px' }}>
@@ -137,7 +144,7 @@ const EntryDetail = () => {
             </Card>}
 
             <Group justify="space-between" align="center">
-                <Title order={3}>Entries</Title>
+                <Title order={3}>Picks</Title>
                 {/* Only show create button if tournament isn't locked */}
                 {!tournamentDetail?.is_locked && (
                     <Button
@@ -154,7 +161,7 @@ const EntryDetail = () => {
 
             <EntryFormModal
                 opened={entryCreateOpened}
-                onClose={closeEntryCreateModal}
+                onClose={closeEntryCreateModalAndReload}
                 tournamentId={entryDetail?.tournament}
                 entry={entryDetail}
             />

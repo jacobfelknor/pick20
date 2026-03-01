@@ -49,7 +49,7 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
 class EntrySerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
     tournament_detail = TournamentSerializer(source="tournament", read_only=True)
-    picks_detail = TournamentTeamSerializer(source="picks", read_only=True, many=True)
+    picks_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = Entry
@@ -70,14 +70,26 @@ class EntrySerializer(serializers.ModelSerializer):
             "still_alive",
             "teams_remaining",
         ]
-        read_only_fields = ["score", "potential_score", "still_alive"]
+        read_only_fields = ["user", "score", "potential_score", "still_alive"]
+
+    def get_picks_detail(self, obj):
+        # Retrieve the queryset and order it
+        picks = obj.picks.all()
+        # default ordering of points earned descending
+        picks = sorted(picks, key=lambda x: x.total_points_earned)
+        return TournamentTeamSerializer(picks, many=True).data
 
     def validate(self, data):
-        # 1. Check if the tournament is locked
-        tournament = data.get("tournament") or self.instance.tournament
-        # TODO: let admin update even after tournament is locked
-        if tournament.is_locked:
-            raise serializers.ValidationError("This tournament is locked. No further entries or changes allowed.")
+        # 1. Grab tournament from data (Create) or instance (Update)
+        tournament = data.get("tournament")
+        if not tournament and self.instance:
+            tournament = self.instance.tournament
+
+        # 2. Check lock status
+        if tournament and tournament.is_locked:
+            # TODO: decide if we want to let admin update even after tournament is locked
+            #       for now, force these kinds of updates through the admin panel, not frontend
+            raise serializers.ValidationError("TThis tournament is locked. No further entries or changes allowed.")
 
         return data
 

@@ -53,8 +53,7 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
         },
         // 2. The "What happened?" logic
         onSuccess: () => {
-            // Tell the cache: "The 'entries' list is now old news. Go fetch the fresh data!"
-            queryClient.invalidateQueries({ queryKey: ['entries'] });
+            queryClient.invalidateQueries({ queryKey: ['entries', tournamentId] });
             notifications.show({
                 title: 'Success!',
                 message: `Entry ${entry ? 'updated' : 'created'} successfully.`,

@@ -31,7 +31,7 @@ const router = createBrowserRouter([
         element: <EntryList />,
       },
       {
-        path: "/entry/:id",
+        path: "/entries/:id",
         element: <EntryDetail />
       },
       {

@@ -51,7 +51,7 @@ export default function EntryTable({ tournament }: { tournament: string }) {
             onRowClick={({ record, index, event }) => {
                 // TODO: restrict access to this navigate unless the tournament is locked or user is superuser
                 // TODO: if tournament is unlocked, this should bring you to an edit field instead of a static view page
-                navigate(`/entry/${record.id}`);
+                navigate(`/entries/${record.id}`);
             }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}

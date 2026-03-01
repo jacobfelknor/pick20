@@ -1,7 +1,7 @@
 import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text, Button } from "@mantine/core";
 import { useOutletContext } from "react-router-dom";
 import EntryTable from "../tables/EntryTable";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import dayjs from 'dayjs';
 import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, IconUsers } from "@tabler/icons-react";
@@ -13,12 +13,21 @@ function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
     const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
+    const queryClient = useQueryClient();
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
         queryKey: ['tournamentDetail', tournament],
         queryFn: () => api.get(`/api/tournament/${tournament}/`).then(res => res.data),
         enabled: !!tournament,
     });
+
+    const closeEntryCreateModalAndReload = () => {
+        closeEntryCreateModal();
+        // query from EntryTable
+        queryClient.invalidateQueries({ queryKey: ['entries', tournament] });
+        // query from PicksTable
+        // queryClient.invalidateQueries({ queryKey: ['entryDetail', tournament] });
+    }
 
     const startDateStr = useMemo(() => `${dayjs(tournamentDetail?.start_date).format("h:mm A")} on ${dayjs(tournamentDetail?.start_date).format("MMMM D, YYYY")}`, [tournamentDetail])
 
@@ -137,7 +146,7 @@ function EntryList() {
 
             <EntryFormModal
                 opened={entryCreateOpened}
-                onClose={closeEntryCreateModal}
+                onClose={closeEntryCreateModalAndReload}
                 tournamentId={tournament}
             />
 

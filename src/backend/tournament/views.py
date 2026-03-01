@@ -1,9 +1,11 @@
 # Create your views here.
 
+from django.db import transaction
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
 from .permissions import IsOwnerAdminOrTournamentLocked
+from .tasks import update_tournament_scores
 
 
 class TournamentDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -41,6 +43,10 @@ class EntryListView(generics.ListAPIView):
     serializer_class = serializers.EntrySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["score"]
+    ordering = ["score"]
+
     def get_queryset(self):
         tournament_id = self.kwargs.get("tournament_id")
         # TODO: add GET param to only return entries for a particular user
@@ -72,11 +78,6 @@ class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         entry_id = self.kwargs.get("entry_id")
 
-        # tournament_id = self.kwargs.get("tournament_id")
-        # user_id = self.kwargs.get("user_id")
-
-        # Look up object by the URL kwargs
-        # obj = generics.get_object_or_404(queryset, tournament_id=tournament_id, user_id=user_id)
         obj = generics.get_object_or_404(queryset, pk=entry_id)
 
         # triggers check with IsOwnerAdminOrTournamentLocked
@@ -85,4 +86,24 @@ class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         # still bound by the 'is_locked' logic in the serializer.
-        serializer.save()
+        with transaction.atomic():
+            serializer.save()
+            update_tournament_scores(serializer.data["tournament"])
+
+
+class EntryCreateView(generics.CreateAPIView):
+    """
+    Allows users to create a new tournament entry.
+    """
+
+    queryset = models.Entry.objects.all()
+    serializer_class = serializers.EntrySerializer
+    permission_classes = [IsOwnerAdminOrTournamentLocked]  # Reusing your existing logic
+
+    def perform_create(self, serializer):
+        # Automatically assign the logged-in user to the entry
+        # This prevents users from creating entries for other people
+        with transaction.atomic():
+            serializer.save(user=self.request.user)
+            # run update task so this gets initial values
+            update_tournament_scores(serializer.data["tournament"])

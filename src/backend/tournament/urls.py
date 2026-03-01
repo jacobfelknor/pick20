@@ -8,6 +8,8 @@ urlpatterns = [
     path("tournament/<pk>/", views.TournamentDetailView.as_view(), name="tournament-detail"),
     path("tournament/<int:tournament_id>/teams/", views.TournamentTeamListView.as_view(), name="tournament-team-list"),
     path("tournament/<int:tournament_id>/entries/", views.EntryListView.as_view(), name="entry-list"),
+    # POST here to create
+    path("entries/", views.EntryCreateView.as_view(), name="entry-create"),
     # GET to retrieve, PUT/PATCH to update, DELETE to remove
-    path("entry/<int:entry_id>/", views.EntryDetailView.as_view(), name="entry-detail"),
+    path("entries/<int:entry_id>/", views.EntryDetailView.as_view(), name="entry-detail"),
 ]
