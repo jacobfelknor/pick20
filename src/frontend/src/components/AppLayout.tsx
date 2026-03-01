@@ -51,6 +51,7 @@ export function AppLayout() {
   const handleTournamentChange = (value: string) => {
     setTournament(value);
     localStorage.setItem('selectedTournament', value);
+    navigate("/entries")
   }
 
 
@@ -101,7 +102,7 @@ export function AppLayout() {
         />
         <NavLink
           label="Schools"
-          active={location.pathname === '/Schools'}
+          active={location.pathname === '/schools'}
           onClick={() => handleNavigate('/schools')}
         />
         <NavLink
