@@ -29,6 +29,8 @@ const EntryDetail = () => {
             >
                 Back to Entries
             </Button>
+            <br />
+            <br />
 
             {/* 2. Content */}
             {!isLoading && <Card withBorder shadow="sm" radius="md" padding="xl" mb="xl">

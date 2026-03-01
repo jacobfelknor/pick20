@@ -26,6 +26,7 @@ class Tournament(models.Model):
 
     year = models.IntegerField(unique=True)  # e.g., 2024
     start_date = models.DateTimeField(help_text="The timestamp when the first game starts. Picks lock after this.")
+    concluded = models.BooleanField(default=False, help_text="Tournament has concluded")
 
     def __str__(self):
         return f"{self.year} Tournament"
@@ -33,6 +34,26 @@ class Tournament(models.Model):
     @property
     def is_locked(self):
         return timezone.now() >= self.start_date
+
+    @property
+    def total_entries(self):
+        return self.entries.count()
+
+    @property
+    def total_participants(self):
+        return self.entries.values_list("user").distinct().count()
+
+    @property
+    def entries_alive(self):
+        return self.entries.filter(still_alive=True).count()
+
+    @property
+    def participants_alive(self):
+        return self.entries.filter(still_alive=True).values_list("user").distinct().count()
+
+    @property
+    def teams_remaining(self):
+        return self.teams.filter(is_eliminated=False).count()
 
 
 class TournamentTeam(models.Model):
@@ -121,7 +142,7 @@ class Entry(models.Model):
 
     name = models.CharField(max_length=100)  # TODO: make this a default like, "User Name N"
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="entries")
 
     # The 20 selected teams
     picks = models.ManyToManyField(TournamentTeam, blank=True)
@@ -129,6 +150,9 @@ class Entry(models.Model):
     # optimistic max: does not account for head-to-head matchups between picks
     potential_score = models.PositiveIntegerField("Optimistic Max Potential Score", default=0, db_index=True)
     still_alive = models.BooleanField("Still Alive", default=True)
+    current_rank = models.PositiveIntegerField("Current Rank", default=0)
+    max_potential_rank = models.PositiveIntegerField("Max Potential Rank", default=0)
+
     # TODO: add payment tracking
     # payment_received = models.BooleanField("Payment Received", default=False)
 

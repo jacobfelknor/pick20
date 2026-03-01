@@ -7,8 +7,19 @@ from .models import Entry, Tournament, TournamentTeam
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = ["id", "year", "start_date", "is_locked"]
-        read_only_fields = ["year", "start_date", "is_locked"]
+        fields = [
+            "id",
+            "year",
+            "start_date",
+            "concluded",
+            "is_locked",
+            "total_entries",
+            "total_participants",
+            "entries_alive",
+            "participants_alive",
+            "teams_remaining",
+        ]
+        read_only_fields = ["year", "start_date", "concluded", "is_locked"]
 
 
 class TournamentTeamSerializer(serializers.ModelSerializer):
@@ -52,6 +63,8 @@ class EntrySerializer(serializers.ModelSerializer):
             "score",
             "potential_score",
             "potential_score_remaining",
+            "current_rank",
+            "max_potential_rank",
             "still_alive",
             "teams_remaining_count",
         ]
