@@ -89,7 +89,7 @@ const EntryDetail = () => {
 
                         <Grid.Col span={{ base: 12, sm: 3 }}>
                             <Group align="center">
-                                <ThemeIcon variant="light" size="xl" radius="md" color="orange">
+                                <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                     <IconTrophy size={24} />
                                 </ThemeIcon>
                                 <div>
