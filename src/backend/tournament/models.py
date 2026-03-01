@@ -193,3 +193,7 @@ class Entry(models.Model):
     @property
     def potential_score_remaining(self):
         return self.potential_score - self.score
+
+    @property
+    def teams_remaining(self):
+        return self.picks.filter(is_eliminated=False).count()

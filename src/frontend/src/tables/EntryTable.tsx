@@ -44,7 +44,7 @@ export default function EntryTable({ tournament }: { tournament: string }) {
                 { accessor: 'score', sortable: true },
                 { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
-                { accessor: 'teams_remaining_count', title: "Teams Remaining", sortable: true },
+                { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
                 { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }: { still_alive: boolean }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}

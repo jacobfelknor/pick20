@@ -46,7 +46,6 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
 class EntrySerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
     tournament_detail = TournamentSerializer(source="tournament", read_only=True)
-    teams_remaining_count = serializers.SerializerMethodField()
     picks_detail = TournamentTeamSerializer(source="picks", read_only=True, many=True)
 
     class Meta:
@@ -66,7 +65,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "current_rank",
             "max_potential_rank",
             "still_alive",
-            "teams_remaining_count",
+            "teams_remaining",
         ]
         read_only_fields = ["score", "potential_score", "still_alive"]
 
@@ -84,7 +83,3 @@ class EntrySerializer(serializers.ModelSerializer):
         if len(value) > 20:
             raise serializers.ValidationError("You can only select up to 20 teams.")
         return value
-
-    def get_teams_remaining_count(self, obj):
-        # This filters the ManyToMany relationship for this specific entry
-        return obj.picks.filter(is_eliminated=False).count()

@@ -1,5 +1,5 @@
 import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconTrophy, IconUser } from "@tabler/icons-react";
+import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconTournament, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
 import api from "../api";
@@ -65,7 +65,18 @@ const EntryDetail = () => {
 
                     {/* Stats Grid */}
                     <Grid>
-                        <Grid.Col span={{ base: 12, sm: 3 }}>
+                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                            <Group align="center" wrap="nowrap">
+                                <ThemeIcon variant="light" size="xl" radius="md" color="orange">
+                                    <IconTournament size={24} />
+                                </ThemeIcon>
+                                <div>
+                                    <Text size="xs" c="dimmed" fw={700} tt="uppercase">Teams Remaining</Text>
+                                    <Text size="xl" fw={700}>{entryDetail.teams_remaining}</Text>
+                                </div>
+                            </Group>
+                        </Grid.Col>
+                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                     <IconChartBar size={24} />
@@ -77,7 +88,7 @@ const EntryDetail = () => {
                             </Group>
                         </Grid.Col>
 
-                        <Grid.Col span={{ base: 12, sm: 3 }}>
+                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="teal">
                                     <IconCalculator size={24} />
@@ -89,7 +100,7 @@ const EntryDetail = () => {
                             </Group>
                         </Grid.Col>
 
-                        <Grid.Col span={{ base: 12, sm: 3 }}>
+                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                     <IconTrophy size={24} />
@@ -100,7 +111,7 @@ const EntryDetail = () => {
                                 </div>
                             </Group>
                         </Grid.Col>
-                        <Grid.Col span={{ base: 12, sm: 3 }}>
+                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="teal">
                                     <IconTrophy size={24} />

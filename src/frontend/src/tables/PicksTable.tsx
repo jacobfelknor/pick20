@@ -1,6 +1,7 @@
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
+import CheckOrXIcon from "../components/CheckOrXIcon";
 
 
 export default function PicksTable({ entryDetail }: { entryDetail: any }) {
@@ -37,7 +38,7 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
                 { accessor: 'total_points_earned', title: "Total Points Earned", sortable: true },
                 { accessor: 'optimistic_potential_points_remaining', title: "Maximum Points Remaining", sortable: true },
                 { accessor: 'optimistic_max_points', title: "Maximum Points", sortable: true },
-                // TODO: add col for admins only that represents "payment received"
+                { accessor: 'is_eliminated', title: "Still Alive", sortable: true, render: ({ is_eliminated }: { is_eliminated: boolean }) => <CheckOrXIcon value={!is_eliminated} /> },
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
