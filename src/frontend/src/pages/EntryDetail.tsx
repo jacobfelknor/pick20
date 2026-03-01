@@ -1,14 +1,18 @@
 import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconTournament, IconTrophy, IconUser } from "@tabler/icons-react";
+import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconPlus, IconTournament, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
 import api from "../api";
 import { useQuery } from "@tanstack/react-query";
+import { EntryFormModal } from "../forms/EntryFormModal";
+import { useDisclosure } from "@mantine/hooks";
 
 
 const EntryDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
 
     // TOOO: based on which tournament this entry belongs to, set the tournament dropdown in navbar?
     //       additionally, should the url to include the tournament id?
@@ -17,6 +21,12 @@ const EntryDetail = () => {
         queryKey: ['entryDetail', id],
         queryFn: () => api.get(`/api/entry/${id}/`).then(res => res.data),
         enabled: !!id,
+    });
+
+    const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
+        queryKey: ['stats', entryDetail?.tournament],
+        queryFn: () => api.get(`/api/tournament/${entryDetail?.tournament}/`).then(res => res.data),
+        enabled: !!entryDetail?.tournament,
     });
 
     return (
@@ -41,7 +51,7 @@ const EntryDetail = () => {
                             <Group gap="xs" mb={4}>
                                 <IconTrophy size={20} color="var(--mantine-color-blue-filled)" />
                                 <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                                    {entryDetail.tournament_detail.year} Tournament Entry
+                                    {entryDetail?.tournament_detail.year} Tournament Entry
                                 </Text>
                             </Group>
                             <Title order={2}>{entryDetail.name}</Title>
@@ -126,10 +136,28 @@ const EntryDetail = () => {
                 </Stack>
             </Card>}
 
-            {/* if tournament locked */}
+            <Group justify="space-between" align="center">
+                <Title order={3}>Entries</Title>
+                {/* Only show create button if tournament isn't locked */}
+                {!tournamentDetail?.is_locked && (
+                    <Button
+                        leftSection={<IconEdit size={18} />}
+                        onClick={openEntryCreateModal}
+                    >
+                        Update Entry
+                    </Button>
+                )}
+            </Group>
+            <br />
+
             <PicksTable entryDetail={entryDetail} />
-            {/* else */}
-            {/* <PicksForm entry={id} /> */}
+
+            <EntryFormModal
+                opened={entryCreateOpened}
+                onClose={closeEntryCreateModal}
+                tournamentId={entryDetail?.tournament}
+                entry={entryDetail}
+            />
         </div>
     );
 };

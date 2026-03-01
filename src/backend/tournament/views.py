@@ -23,6 +23,20 @@ class TournamentListView(generics.ListAPIView):
     ordering = ["-year"]
 
 
+class TournamentTeamListView(generics.ListAPIView):
+    serializer_class = serializers.TournamentTeamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["seed"]
+    ordering = ["seed"]
+
+    def get_queryset(self):
+        tournament_id = self.kwargs.get("tournament_id")
+        qs = models.TournamentTeam.objects.filter(tournament=tournament_id)
+        return qs
+
+
 class EntryListView(generics.ListAPIView):
     serializer_class = serializers.EntrySerializer
     permission_classes = [permissions.IsAuthenticated]

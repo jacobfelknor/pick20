@@ -6,6 +6,7 @@ urlpatterns = [
     # GET to list
     path("tournament/", views.TournamentListView.as_view(), name="tournament-list"),
     path("tournament/<pk>/", views.TournamentDetailView.as_view(), name="tournament-detail"),
+    path("tournament/<int:tournament_id>/teams/", views.TournamentTeamListView.as_view(), name="tournament-team-list"),
     path("tournament/<int:tournament_id>/entries/", views.EntryListView.as_view(), name="entry-list"),
     # GET to retrieve, PUT/PATCH to update, DELETE to remove
     path("entry/<int:entry_id>/", views.EntryDetailView.as_view(), name="entry-detail"),

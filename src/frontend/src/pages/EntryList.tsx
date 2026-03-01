@@ -1,18 +1,21 @@
-import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text } from "@mantine/core";
+import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text, Button } from "@mantine/core";
 import { useOutletContext } from "react-router-dom";
 import EntryTable from "../tables/EntryTable";
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 import dayjs from 'dayjs';
-import { IconCalendar, IconCircleCheck, IconInfoCircle, IconTrophy, IconUsers } from "@tabler/icons-react";
+import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { EntryFormModal } from "../forms/EntryFormModal";
 
 function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
+    const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
-        queryKey: ['stats', tournament],
+        queryKey: ['tournamentDetail', tournament],
         queryFn: () => api.get(`/api/tournament/${tournament}/`).then(res => res.data),
         enabled: !!tournament,
     });
@@ -117,7 +120,26 @@ function EntryList() {
                 </Alert>
             }
 
+            <Group justify="space-between" align="center">
+                <Title order={3}>Entries</Title>
+                {/* Only show create button if tournament isn't locked */}
+                {!tournamentDetail?.is_locked && (
+                    <Button
+                        leftSection={<IconPlus size={18} />}
+                        onClick={openEntryCreateModal}
+                    >
+                        Create Entry
+                    </Button>
+                )}
+            </Group>
+
             <EntryTable tournament={tournament} />
+
+            <EntryFormModal
+                opened={entryCreateOpened}
+                onClose={closeEntryCreateModal}
+                tournamentId={tournament}
+            />
 
         </Stack>
     );

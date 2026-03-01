@@ -28,6 +28,7 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentTeam
         fields = [
+            "id",
             "school",
             "school_name",
             "seed",
