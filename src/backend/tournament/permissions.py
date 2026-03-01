@@ -26,5 +26,7 @@ class IsOwnerAdminOrTournamentLocked(permissions.BasePermission):
             # grants permission if tournament is locked, i.e. after tournament starts
             if not obj.tournament.is_locked:
                 self.message = "You cannot view another user's entry until the tournament is locked!"
+            else:
+                return True
 
         return False

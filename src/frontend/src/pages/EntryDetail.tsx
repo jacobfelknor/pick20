@@ -33,7 +33,7 @@ const EntryDetail = () => {
             <br />
 
             {/* 2. Content */}
-            {!isLoading && <Card withBorder shadow="sm" radius="md" padding="xl" mb="xl">
+            {(entryDetail && !isLoading) && <Card withBorder shadow="sm" radius="md" padding="xl" mb="xl">
                 <Stack gap="md">
                     {/* Header Section */}
                     <Group justify="space-between" align="flex-start">

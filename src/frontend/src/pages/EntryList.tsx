@@ -4,7 +4,7 @@ import EntryTable from "../tables/EntryTable";
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 import dayjs from 'dayjs';
-import { IconCalculator, IconCalendar, IconChartBar, IconCircleCheck, IconCircleX, IconInfoCircle, IconTournament, IconTrophy, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconCalendar, IconCircleCheck, IconInfoCircle, IconTrophy, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
 
 function EntryList() {
@@ -23,7 +23,7 @@ function EntryList() {
         <Stack>
             <Title order={2}>{isTournamentDetailLoading ? '...' : tournamentDetail?.year} Tournament</Title>
 
-            {!isTournamentDetailLoading && (
+            {(tournamentDetail && !isTournamentDetailLoading) && (
                 <Card withBorder shadow="sm" radius="md" padding="xl" mb="xl">
                     <Stack gap="md">
                         {/* Header Section */}
