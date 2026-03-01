@@ -1,24 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import api from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
-import CheckOrXIcon from "../components/CheckOrXIcon";
-import { useNavigate } from "react-router-dom";
-import { useMantineEnv } from "@mantine/core";
 
 
-export default function PicksTable({ entry }: { entry: string | undefined }) {
-    const navigate = useNavigate();
-
-    const { data: entryDetail, isLoading } = useQuery({
-        queryKey: ['entryDetail', entry],
-        queryFn: () => api.get(`/api/entry/${entry}/`).then(res => res.data),
-        enabled: !!entry,
-    });
-
-    // const tournamentDetail = useMemo(() => entryDetail?.tournament_detail, [entryDetail]);
-    // console.log(tournamentDetail);
+export default function PicksTable({ entryDetail }: { entryDetail: any }) {
 
     const entryPicks = useMemo(() => entryDetail?.picks_detail, [entryDetail])
 
@@ -42,7 +27,7 @@ export default function PicksTable({ entry }: { entry: string | undefined }) {
             striped
             highlightOnHover
             textSelectionDisabled // don't trick users into thinking they can copy. The row click event fires if trying to highlight
-            fetching={isLoading} // Adds a nice loading overlay
+            // fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
                 { accessor: 'school_name', title: "School", sortable: true },

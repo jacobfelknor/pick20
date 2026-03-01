@@ -38,7 +38,8 @@ export default function EntryTable({ tournament }: { tournament: string }) {
             fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
-                { accessor: 'name', sortable: true },
+                { accessor: 'name', title: "Entry Name", sortable: true },
+                { accessor: 'user_detail.full_name', title: "Created By", sortable: true },
                 { accessor: 'score', sortable: true },
                 { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
