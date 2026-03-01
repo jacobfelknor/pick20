@@ -3,6 +3,8 @@ import api from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
+import CheckOrXIcon from "../components/CheckOrXIcon";
+
 
 export default function EntryTable({ tournament }: { tournament: string }) {
     const { data: entries, isLoading } = useQuery({
@@ -35,7 +37,7 @@ export default function EntryTable({ tournament }: { tournament: string }) {
                 { accessor: 'name', sortable: true },
                 { accessor: 'score', textAlign: 'right', sortable: true },
                 { accessor: 'potential_score', textAlign: 'right', sortable: true },
-                { accessor: 'still_alive', textAlign: 'right', sortable: true },
+                { accessor: 'still_alive', textAlign: 'right', sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
