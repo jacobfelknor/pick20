@@ -103,7 +103,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "pick20",
         "USER": "admin",
-        "PASSWORD": "pick20",
+        "PASSWORD": "pick20", # TODO: use a secrets manager
         "HOST": "pick20-db",
         "PORT": "5432",
     }
