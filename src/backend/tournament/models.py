@@ -62,6 +62,13 @@ class TournamentTeam(models.Model):
     This is the 'Pickable' item.
     """
 
+    class Meta:
+        unique_together = [
+            ("tournament", "school", "school_secondary"),
+            ("tournament", "seed", "region"),
+        ]
+        ordering = ["region", "seed"]
+
     MAX_WINS = 6  # assumes a 64 team field
 
     # Inner class for clean organization of choices
@@ -90,10 +97,6 @@ class TournamentTeam(models.Model):
     # Instead of Game models, we just increment this integer.
     wins = models.PositiveIntegerField(default=0)
     is_eliminated = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ("tournament", "school", "school_secondary")
-        ordering = ["region", "seed"]
 
     def __str__(self):
         return f"{self.name_display} ({self.seed}) - {self.tournament.year}"
