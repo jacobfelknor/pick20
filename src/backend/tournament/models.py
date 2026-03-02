@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class School(models.Model):
@@ -87,7 +88,7 @@ class TournamentTeam(models.Model):
     school_secondary = models.ForeignKey(School, on_delete=models.PROTECT, blank=True, null=True)
 
     # The data specific to this year
-    seed = models.IntegerField()  # 1 through 16
+    seed = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(16)])  # 1 through 16
     region = models.CharField(
         max_length=32,
         choices=Region.choices,
@@ -95,7 +96,7 @@ class TournamentTeam(models.Model):
 
     # THE CORE TRACKING FIELD
     # Instead of Game models, we just increment this integer.
-    wins = models.PositiveIntegerField(default=0)
+    wins = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(MAX_WINS)])
     is_eliminated = models.BooleanField(default=False)
 
     def __str__(self):
