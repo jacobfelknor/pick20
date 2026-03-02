@@ -10,8 +10,8 @@ class School(models.Model):
     These records persist forever and don't change year-to-year.
     """
 
-    name = models.CharField(max_length=64)  # e.g., "Duke"
-    abbrev = models.CharField(max_length=10)  # e.g., "DUKE"
+    name = models.CharField(max_length=64, unique=True)  # e.g., "Michigan"
+    abbrev = models.CharField(max_length=10)  # e.g., "UofM"
     # Optional: logo_url, primary_color, etc.
 
     def __str__(self):
