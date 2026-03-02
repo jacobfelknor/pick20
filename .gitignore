@@ -13,6 +13,10 @@ build/
 pick20-data/
 
 # Django
+staticfiles/
+media/
+
+# Django
 *.log
 *.pot
 local_settings.py

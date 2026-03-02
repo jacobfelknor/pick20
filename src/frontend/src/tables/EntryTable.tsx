@@ -45,12 +45,13 @@ export default function EntryTable({ tournament }: { tournament: string }) {
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
                 { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
-                { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }: { still_alive: boolean }) => <CheckOrXIcon value={still_alive} /> },
+                { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}
             onRowClick={({ record, index, event }) => {
-                // TODO: restrict access to this navigate unless the tournament is locked or user is superuser
-                // TODO: if tournament is unlocked, this should bring you to an edit field instead of a static view page
+                // trick linter that these are used, for now. I'd rather see they're available
+                index;
+                event;
                 navigate(`/entries/${record.id}`);
             }}
             sortStatus={sortStatus}

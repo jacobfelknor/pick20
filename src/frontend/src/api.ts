@@ -1,18 +1,22 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, AxiosError } from "axios";
 
-// 1. Define the shapes of your Django responses
-interface TokenResponse {
-  access: string;
-  refresh: string;
-}
+const DEV_URL = "http://localhost:8000";
 
+// Use the environment variable, or fall back to dev if it's undefined
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
+
+if (import.meta.env.DEV) {
+  console.log("🛠️ API running in Development Mode:", BASE_URL);
+} else {
+  console.log("🚀 API running in Production Mode");
+}
 interface RefreshResponse {
   access: string;
 }
 
 // 2. Create the instance
 const api: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: BASE_URL,
 });
 
 // 3. Request Interceptor
@@ -39,11 +43,11 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refresh");
-        
+
         // We use standard axios here to avoid an infinite loop 
         // back to this interceptor if the refresh call itself fails
         const response = await axios.post<RefreshResponse>(
-          "http://localhost:8000/api/auth/token/refresh/", 
+          `${BASE_URL}/api/auth/token/refresh/`,
           { refresh: refreshToken }
         );
 

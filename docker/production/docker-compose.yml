@@ -1,0 +1,60 @@
+services:
+  pick20-db:
+    image: postgres:18
+    expose:
+      - "5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=pick20
+      - POSTGRES_DB=pick20
+    volumes:
+      - ./pick20-data:/var/lib/postgresql/data:z
+    restart: unless-stopped
+
+  pick20-backend:
+    image: pick20-backend
+    # in lieu of using GHCR, start will local builds.
+    build:
+      context: ../../
+      target: pick20_backend
+    depends_on:
+      - pick20-db
+    expose:
+      - "8000"
+    volumes:
+      # externally mount virtual environment, so that it is independent of the container build itself
+      - ./pick20-data/.venv:/pick20_backend_src/.venv:z
+      - ./pick20-data/staticfiles:/pick20_backend_src/pick20/staticfiles:z
+      - ./pick20-data/media:/pick20_backend_src/pick20/media:z
+    command: [ "gunicorn", "pick20.wsgi:application", "-b", "0.0.0.0:8000" ]
+    restart: unless-stopped
+  # nginx acts as a reverse proxy to gunicorn running in the pick20-backend container
+  # this layer of nginx is configured to:
+  #   1. only run on http bound to localhost
+  #   2. have no knowledge of potential SSL implementations at a higher level
+
+  # In your final configuration, a separate NGINX (or other webserver) should exist in front of this which
+  #   1. Defines the domain associated with this instance of the site (server name)
+  #   2. Configures and terminates SSL
+  #   3. Proxy passes all traffic to localhost:port of appropriate NGINX container for the given site
+  pick20-frontend:
+    image: pick20-frontend
+    # in lieu of using GHCR, start will local builds.
+    build:
+      context: ../../
+      target: pick20_frontend
+    depends_on:
+      - pick20-backend
+    env_file:
+      - .env
+    ports:
+      # NOTE: we do not bind to hosts 80/443 so that it may continue to serve as a reverse proxy for other applications
+      # bind a port to loopback interface which will map to container port 80 where NGINX will be listening
+      # To skip fronting this with an SSL terminated reverse proxy above, bind to 0.0.0.0 instead. You could then
+      # directly connect to the host at the specified PICK20_NGINX_PORT
+      - 127.0.0.1:${PICK20_NGINX_PORT}:80
+    volumes:
+      - ./pick20-data/staticfiles:/var/www/static:z
+      - ./pick20-data/media:/var/www/media:z
+    restart: unless-stopped

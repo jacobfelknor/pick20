@@ -38,7 +38,7 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
                 { accessor: 'total_points_earned', title: "Total Points Earned", sortable: true },
                 { accessor: 'optimistic_potential_points_remaining', title: "Maximum Points Remaining", sortable: true },
                 { accessor: 'optimistic_max_points', title: "Maximum Points", sortable: true },
-                { accessor: 'is_eliminated', title: "Still Alive", sortable: true, render: ({ is_eliminated }: { is_eliminated: boolean }) => <CheckOrXIcon value={!is_eliminated} /> },
+                { accessor: 'is_eliminated', title: "Still Alive", sortable: true, render: ({ is_eliminated }) => <CheckOrXIcon value={!is_eliminated} /> },
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}

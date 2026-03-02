@@ -1,7 +1,7 @@
 import { ThemeIcon } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
 
-export default function CheckOrXIcon({ value }: { value: boolean }) {
+export default function CheckOrXIcon({ value }: { value: any }) {
     return (
         <ThemeIcon
             color={value ? 'green' : 'red'}

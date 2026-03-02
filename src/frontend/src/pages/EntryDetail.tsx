@@ -29,6 +29,7 @@ const EntryDetail = () => {
         queryFn: () => api.get(`/api/tournament/${entryDetail?.tournament}/`).then(res => res.data),
         enabled: !!entryDetail?.tournament,
     });
+    isTournamentDetailLoading; // trick linter for now. I want to remember this is available
 
     const closeEntryCreateModalAndReload = () => {
         closeEntryCreateModal();

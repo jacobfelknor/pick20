@@ -1,16 +1,16 @@
 import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-import { 
-    TextInput, 
-    PasswordInput, 
-    Button, 
-    Container, 
-    Paper, 
-    Title, 
-    Text, 
+import {
+    TextInput,
+    PasswordInput,
+    Button,
+    Container,
+    Paper,
+    Title,
+    Text,
     Anchor,
-    Stack 
+    Stack
 } from "@mantine/core";
 
 function Register() {
@@ -43,8 +43,8 @@ function Register() {
 
     return (
         <Container size={420} my={40}>
-            <Title align="center">Create an Account</Title>
-            <Text color="dimmed" size="sm" align="center" mt={5}>
+            <Title>Create an Account</Title>
+            <Text color="dimmed" size="sm" mt={5}>
                 Already have an account?{' '}
                 <Anchor size="sm" component="button" onClick={() => navigate("/login")}>
                     Login
@@ -54,24 +54,24 @@ function Register() {
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={handleSubmit}>
                     <Stack>
-                        <TextInput 
-                            label="Username" 
-                            placeholder="Choose a username" 
-                            required 
+                        <TextInput
+                            label="Username"
+                            placeholder="Choose a username"
+                            required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
-                        <PasswordInput 
-                            label="Password" 
-                            placeholder="Choose a password" 
-                            required 
+                        <PasswordInput
+                            label="Password"
+                            placeholder="Choose a password"
+                            required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <PasswordInput 
-                            label="Confirm Password" 
-                            placeholder="Re-enter password" 
-                            required 
+                        <PasswordInput
+                            label="Confirm Password"
+                            placeholder="Re-enter password"
+                            required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />

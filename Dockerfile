@@ -34,27 +34,18 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
-# setup entrypoint
-COPY docker/entrypoint.sh /bin/entrypoint.sh
-RUN chmod +x /bin/entrypoint.sh
-
-USER ${USERNAME}
-
 # this var allow us to externally mount bash and ipython histories for convenience between container
 # the directory is created on demand during the entrypoint
 ENV HISTFILE="${PICK20_DATA_DIR}/bash/.bash_history"
 ENV IPYTHONDIR="${PICK20_DATA_DIR}/ipython"
 
-WORKDIR ${PICK20_WORKDIR}
-
-EXPOSE 8000
-ENTRYPOINT [ "/bin/bash", "entrypoint.sh" ]
-CMD ["bash"]
-
 FROM pick20_base as dev
 
+# setup entrypoint
+COPY docker/development/entrypoint.sh /bin/entrypoint.sh
+RUN chmod +x /bin/entrypoint.sh
+
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-USER root
 
 RUN \
     apt-get update \
@@ -65,7 +56,7 @@ RUN \
     yarn nodejs npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-    
+
 # Update to the latest stable node version
 RUN npm install -g n --ignore-scripts && n lts
 
@@ -77,25 +68,45 @@ RUN \
     && echo "alias cat='batcat -pp'" >> ${PICK20_HOME}/.bashrc \
     && echo 'export PS1="\[\033[38;5;10m\]\u@\h\[$(tput sgr0)\]:\[$(tput sgr0)\]\[\033[38;5;12m\]\w\[$(tput sgr0)\]\\$ \[$(tput sgr0)\]"' >> ${PICK20_HOME}/.bashrc
 
-
-FROM pick20_base as prod
-
-# due to the nature of our production mounts, UV must use copy mode
-# .venv and uv_cache dir are on separate mounts, where as on dev its a single mount at '.'
-ENV UV_LINK_MODE=copy
-
-# We've converted our development environment to use non-root container users,
-# but our production environment still relies on specific volume mounts
-# that will be created by root so will need root perms
-USER root
-
-# for the production build, we need to copy over the source code because it will not be mounted
-# from the development directory
-COPY pick20 ${PICK20_WORKDIR}
-COPY pyproject.toml ${PICK20_WORKDIR}/pyproject.toml
-COPY uv.lock ${PICK20_WORKDIR}/uv.lock
+WORKDIR ${PICK20_WORKDIR}
+EXPOSE 8000
 
 ENTRYPOINT [ "/bin/bash", "entrypoint.sh" ]
 # when running the container by itself, just dump us to a shell. This will be overridden in the compose files
 # to start a development server
 CMD ["bash"]
+
+FROM pick20_base as pick20_backend
+
+WORKDIR /pick20_backend_src
+
+# for the production build, we need to copy over the source code because it will not be mounted
+# from the development directory
+COPY src/backend /pick20_backend_src
+COPY pyproject.toml /pick20_backend_src/pyproject.toml
+COPY uv.lock /pick20_backend_src/uv.lock
+
+# setup entrypoint
+COPY docker/production/entrypoint.sh /bin/entrypoint.sh
+RUN chmod +x /bin/entrypoint.sh
+
+ENTRYPOINT [ "/bin/bash", "entrypoint.sh" ]
+CMD ["gunicorn", "pick20.wsgi:application", "-b", "0.0.0.0:8000"]
+
+FROM node:24-alpine as pick20_frontend_builder
+COPY src/frontend /pick20_frontend
+WORKDIR /pick20_frontend
+RUN \
+    npm install \
+    && npm run build
+
+FROM nginx:stable as pick20_frontend
+
+# since we can compile the frontend into a static site, we can just use NGINX to serve it
+
+RUN \
+    rm -f /etc/nginx/conf.d/default.conf \
+    && mkdir -p /var/www/pick20
+
+COPY docker/production/nginx-conf.d /etc/nginx/conf.d
+COPY --from=pick20_frontend_builder /pick20_frontend/dist /var/www/pick20
