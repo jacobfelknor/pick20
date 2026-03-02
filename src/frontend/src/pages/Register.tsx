@@ -12,9 +12,13 @@ import {
     Anchor,
     Stack
 } from "@mantine/core";
+import { IconAt } from "@tabler/icons-react";
 
 function Register() {
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [first_name, setFirstName] = useState("");
+    const [last_name, setLastName] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -31,11 +35,11 @@ function Register() {
         setLoading(true);
 
         try {
-            await api.post("/api/auth/register/", { username, password });
+            await api.post("/api/auth/register/", { username, password, first_name, last_name, email });
             alert("Registration successful! Please login.");
             navigate("/login");
         } catch (error: any) {
-            alert("Registration failed. Username might already exist.");
+            alert("Registration failed. Try again with a different username, or contact the Felknor's for assistance");
         } finally {
             setLoading(false);
         }
@@ -60,6 +64,29 @@ function Register() {
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                        />
+                        <TextInput
+                            leftSectionPointerEvents="none"
+                            leftSection={<IconAt size={16} />}
+                            required
+                            value={email}
+                            label="Your email"
+                            placeholder="Your email"
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <TextInput
+                            label="First Name"
+                            placeholder="Enter your first name"
+                            required
+                            value={first_name}
+                            onChange={(e) => setFirstName(e.target.value)}
+                        />
+                        <TextInput
+                            label="Last Name"
+                            placeholder="Enter your last name"
+                            required
+                            value={last_name}
+                            onChange={(e) => setLastName(e.target.value)}
                         />
                         <PasswordInput
                             label="Password"
