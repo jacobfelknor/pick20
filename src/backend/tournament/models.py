@@ -64,7 +64,7 @@ class TournamentTeam(models.Model):
 
     class Meta:
         unique_together = [
-            ("tournament", "school", "school_secondary"),
+            ("tournament", "school"),
             ("tournament", "seed", "region"),
         ]
         ordering = ["region", "seed"]
