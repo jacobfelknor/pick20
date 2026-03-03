@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "@mantine/form"; // Added this
 import {
     TextInput,
     PasswordInput,
@@ -10,36 +11,88 @@ import {
     Title,
     Text,
     Anchor,
-    Stack
+    Stack,
+    Center,
+    Box,
+    Progress
 } from "@mantine/core";
-import { IconAt } from "@tabler/icons-react";
+import { IconAt, IconCheck, IconX } from "@tabler/icons-react";
+
+function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+    return (
+        <Text component="div" color={meets ? 'teal' : 'red'} mt={5} size="sm">
+            <Center inline>
+                {meets ? <IconCheck size="14" stroke={1.5} /> : <IconX size="14" stroke={1.5} />}
+                <Box ml={7}>{label}</Box>
+            </Center>
+        </Text>
+    );
+}
+
+const requirements = [
+    { re: /.{8,}/, label: 'Has at least 8 characters' },
+    { re: /[0-9]/, label: 'Includes number' },
+    { re: /[A-Za-z]/, label: 'Includes letter' },
+];
+
+function getStrength(password: string) {
+    let multiplier = password.length > 0 ? 1 : 0;
+    requirements.forEach((requirement) => {
+        if (!requirement.re.test(password)) {
+            multiplier = 0;
+        }
+    });
+    return multiplier * 100;
+}
 
 function Register() {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [first_name, setFirstName] = useState("");
-    const [last_name, setLastName] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const form = useForm({
+        initialValues: {
+            username: "",
+            email: "",
+            first_name: "",
+            last_name: "",
+            password: "",
+            confirmPassword: "",
+        },
+        // This automatically trims the names before the handleSubmit receives them
+        transformValues: (values) => ({
+            ...values,
+            first_name: values.first_name.trim(),
+            last_name: values.last_name.trim(),
+            // username: values.username.trim().toLowerCase(),
+        }),
+        validate: {
+            username: (value) =>
+                /^[a-z0-9]+$/.test(value)
+                    ? null
+                    : "Username must be lowercase with no spaces or special characters",
+            email: (value) =>
+                /^\S+@\S+$/.test(value) ? null : "Invalid email",
+            password: (value) =>
+                /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(value)
+                    ? null
+                    : "Must be 8+ characters with a letter and a number",
+            confirmPassword: (value, values) =>
+                value !== values.password ? "Passwords do not match" : null,
+        },
+    });
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
-
+    const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
 
         try {
-            await api.post("/api/auth/register/", { username, password, first_name, last_name, email });
+            // We destructure confirmPassword out so we don't send it to the API
+            const { confirmPassword, ...registerData } = values;
+            await api.post("/api/auth/register/", registerData);
             alert("Registration successful! Please login.");
             navigate("/login");
         } catch (error: any) {
-            alert("Registration failed. Try again with a different username, or contact the Felknor's for assistance");
+            const responseData = error.response?.data;
+            form.setErrors(responseData);
         } finally {
             setLoading(false);
         }
@@ -56,51 +109,63 @@ function Register() {
             </Text>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={form.onSubmit(handleSubmit)}>
                     <Stack>
                         <TextInput
                             label="Username"
                             placeholder="Choose a username"
                             required
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            {...form.getInputProps("username")}
                         />
                         <TextInput
                             leftSectionPointerEvents="none"
                             leftSection={<IconAt size={16} />}
                             required
-                            value={email}
                             label="Your email"
-                            placeholder="Your email"
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="hello@example.com"
+                            {...form.getInputProps("email")}
                         />
                         <TextInput
                             label="First Name"
                             placeholder="Enter your first name"
                             required
-                            value={first_name}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            {...form.getInputProps("first_name")}
                         />
                         <TextInput
                             label="Last Name"
                             placeholder="Enter your last name"
                             required
-                            value={last_name}
-                            onChange={(e) => setLastName(e.target.value)}
+                            {...form.getInputProps("last_name")}
                         />
-                        <PasswordInput
-                            label="Password"
-                            placeholder="Choose a password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <div>
+                            <PasswordInput
+                                label="Password"
+                                placeholder="Your password (spaces allowed)"
+                                required
+                                {...form.getInputProps("password")}
+                            />
+
+                            {/* Strength Meter Visuals */}
+                            <Progress
+                                color={form.values.password.length > 0 ? (getStrength(form.values.password) === 100 ? 'teal' : 'yellow') : 'gray'}
+                                value={form.values.password.length > 0 ? (getStrength(form.values.password) === 100 ? 100 : 40) : 0}
+                                size={5}
+                                mt="xs"
+                            />
+
+                            {requirements.map((requirement, index) => (
+                                <PasswordRequirement
+                                    key={index}
+                                    label={requirement.label}
+                                    meets={requirement.re.test(form.values.password)}
+                                />
+                            ))}
+                        </div>
                         <PasswordInput
                             label="Confirm Password"
                             placeholder="Re-enter password"
                             required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            {...form.getInputProps("confirmPassword")}
                         />
                         <Button fullWidth mt="xl" type="submit" loading={loading}>
                             Register
