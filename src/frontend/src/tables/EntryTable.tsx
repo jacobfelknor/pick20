@@ -45,7 +45,7 @@ export default function EntryTable({ tournamentDetail }: { tournamentDetail: any
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
                 { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
-                { accessor: 'completed', title: "Entry Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ completed }) => <CheckOrXIcon value={completed} /> },
+                { accessor: 'complete', title: "Entry Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
                 { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}
