@@ -1,6 +1,8 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, AxiosError } from "axios";
 
 const DEV_URL = "http://localhost:8000";
+// if you want to debug frontend against prod db
+// const DEV_URL = "https://pick20.jacobfelknor.com";
 
 // Use the environment variable, or fall back to dev if it's undefined
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
