@@ -1,7 +1,19 @@
 import { useState } from "react";
-import api from "../api"; // Use our custom interceptor
+import api from "../api";
 import { useNavigate } from "react-router-dom";
-import { TextInput, PasswordInput, Button, Container, Paper, Title, Text, Anchor } from "@mantine/core";
+import {
+    TextInput,
+    PasswordInput,
+    Button,
+    Container,
+    Paper,
+    Title,
+    Text,
+    Anchor,
+    Group,
+    Image,
+    Stack
+} from "@mantine/core";
 
 function Login() {
     const [username, setUsername] = useState("");
@@ -32,13 +44,23 @@ function Login() {
 
     return (
         <Container size={420} my={40}>
-            <Title>Welcome back!</Title>
-            <Text color="dimmed" size="sm" mt={5}>
-                Do not have an account yet?{' '}
-                <Anchor size="sm" component="button" onClick={() => navigate("/register")}>
-                    Create account
-                </Anchor>
-            </Text>
+            <Stack align="center" gap="xs" mb="lg">
+                <Image
+                    src="/favicon.png"
+                    w={60} // Made it slightly larger for a "hero" look
+                    h={60}
+                    alt="Felknor's Pick20 Logo"
+                />
+                <Title order={2} ta="center">
+                    Login to Felknor's Pick20
+                </Title>
+                <Text color="dimmed" size="sm" ta="center">
+                    Do not have an account yet?{' '}
+                    <Anchor size="sm" component="button" onClick={() => navigate("/register")}>
+                        Create account
+                    </Anchor>
+                </Text>
+            </Stack>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={handleSubmit}>
