@@ -7,13 +7,13 @@ import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
 
 
-export default function EntryTable({ tournamentDetail }: { tournamentDetail: any }) {
+export default function EntryTable({ tournament, tournamentDetail }: { tournament: string, tournamentDetail: any }) {
     const navigate = useNavigate();
 
     const { data: entries, isLoading } = useQuery({
-        queryKey: ['entries', tournamentDetail?.id],
-        queryFn: () => api.get(`/api/tournament/${tournamentDetail?.id}/entries/`).then(res => res.data),
-        enabled: !!tournamentDetail?.id,
+        queryKey: ['entries', tournament],
+        queryFn: () => api.get(`/api/tournament/${tournament}/entries/`).then(res => res.data),
+        enabled: !!tournament,
     });
 
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({

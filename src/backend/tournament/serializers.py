@@ -96,6 +96,18 @@ class EntrySerializer(serializers.ModelSerializer):
             #       for now, force these kinds of updates through the admin panel, not frontend
             raise serializers.ValidationError("TThis tournament is locked. No further entries or changes allowed.")
 
+        # 3. Check for duplicate name
+        name = data.get("name")
+        request = self.context.get("request")
+        user = request.user
+
+        queryset = Entry.objects.filter(user=user, name=name)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError({"name": "You already have an entry with this name."})
+
         return data
 
     def validate_picks(self, value):

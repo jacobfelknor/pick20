@@ -6,6 +6,7 @@ import { IconCheck, IconDeviceFloppy } from '@tabler/icons-react';
 import api from '../api';
 import { notifications } from '@mantine/notifications';
 import { sortBy } from 'lodash';
+import { useForm } from '@mantine/form';
 
 interface EntryFormModalProps {
     opened: boolean;
@@ -16,42 +17,58 @@ interface EntryFormModalProps {
 
 export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFormModalProps) {
     const queryClient = useQueryClient();
-    const [name, setName] = useState('');
-    const [selectedTeams, setSelectedTeams] = useState<any[]>([]);
 
-    // Fetch available teams for this tournament
+    // 1. Initialize Mantine Form
+    const form = useForm({
+        initialValues: {
+            name: '',
+            picks: [] as any[], // This will hold the full team objects for the DataTable
+        },
+        validate: {
+            name: (value) => (value.length < 1 ? 'Name is required' : null),
+            picks: (value) => (value.length > 20 ? 'You can only select up to 20 teams' : null),
+        },
+    });
+
     const { data: teams, isLoading } = useQuery({
         queryKey: ['tournament-teams', tournamentId],
         queryFn: () => api.get(`/api/tournament/${tournamentId}/teams/`).then((res) => res.data),
         enabled: opened,
     });
 
+    // 2. Sync entry data into form when modal opens
     useEffect(() => {
-        if (entry && teams) {
-            setName(entry.name);
+        if (opened) {
+            if (entry && teams) {
+                const pickIds = entry.picks.map((p: any) => typeof p === 'object' ? p.id : p);
+                const preselected = teams.filter((team: any) => pickIds.includes(team.id));
 
-            // Create an array of IDs from the entry's picks
-            // Handles both objects {id: 1} or just IDs [1, 2, 3] depending on your serializer
-            const pickIds = entry.picks.map((p: any) => typeof p === 'object' ? p.id : p);
-            // Find the actual team objects from the source list that match those IDs
-            const preselected = teams.filter((team: any) => pickIds.includes(team.id));
-
-            setSelectedTeams(preselected);
-        } else {
-            setName('');
-            setSelectedTeams([]);
+                form.setValues({
+                    name: entry.name,
+                    picks: preselected,
+                });
+            } else {
+                form.reset();
+            }
         }
-    }, [entry, opened, teams]); // Added teams as a dependency
+    }, [entry, opened, teams]);
 
     const mutation = useMutation({
-        // 1. The actual "Work" function
-        mutationFn: (data: any) => {
+        // The actual "Work" function
+        mutationFn: (values: typeof form.values) => {
             // If we have an 'entry', we use PATCH (update). If not, POST (create).
+            const payload = {
+                name: values.name,
+                // Transform objects back to IDs for the API
+                picks: values.picks.map((t) => t.id),
+                tournament: tournamentId
+            };
+
             return entry
-                ? api.patch(`/api/entries/${entry.id}/`, data)
-                : api.post(`/api/entries/`, { ...data, tournament: tournamentId });
+                ? api.patch(`/api/entries/${entry.id}/`, payload)
+                : api.post(`/api/entries/`, payload);
         },
-        // 2. The "What happened?" logic
+        // The "What happened?" logic
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['entries', tournamentId] });
             notifications.show({
@@ -62,33 +79,23 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
             // Close the modal because we are done
             onClose();
         },
-        // 3. The "Error handler" logic
         onError: (error: any) => {
             // Dig out the error message from the Django response
-            const serverMessage = error.response?.data?.detail ||
-                error.response?.data?.non_field_errors?.[0] ||
-                "Something went wrong. Please try again.";
+            const errorData = error.response?.data;
 
-            notifications.show({
-                title: 'Submission Failed',
-                message: serverMessage,
-                color: 'red',
-                autoClose: 5000,
-            });
+            if (errorData) {
+                // Map Django Rest Framework errors to Mantine Form fields
+                form.setErrors(errorData);
+            } else {
+                notifications.show({
+                    title: 'Submission Failed',
+                    message: "Something went wrong. Please try again.",
+                    color: 'red',
+                    autoClose: 5000,
+                });
+            }
         },
     });
-
-
-    const handleSubmit = () => {
-        mutation.mutate({
-            name,
-            picks: selectedTeams.map((t) => t.id),
-        });
-    };
-
-
-    // NOTE: selecting less than 20 teams is allowed, but not advised
-    const isValid = name.length > 0 && selectedTeams.length <= 20;
 
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
         columnAccessor: 'seed',
@@ -109,63 +116,61 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
             title={entry ? "Edit Entry" : "Create New Entry"}
             size="75%"
         >
-            <Stack>
-                <TextInput
-                    label="Entry Name"
-                    placeholder="e.g. John Doe #2"
-                    value={name}
-                    onChange={(e) => setName(e.currentTarget.value)}
-                    required
-                />
+            {/* 4. Use form.onSubmit to handle validation and submission */}
+            <form onSubmit={form.onSubmit((values) => mutation.mutate(values))}>
+                <Stack>
+                    <TextInput
+                        label="Entry Name"
+                        placeholder="e.g. John Doe #2"
+                        required
+                        {...form.getInputProps('name')}
+                    />
 
-                <Text size="sm" fw={500}>
-                    Select 20 Teams ({selectedTeams.length}/20)
-                </Text>
+                    <Stack gap={'xs'}>
+                        <Text size="sm" fw={500}>
+                            Select 20 Teams ({form.values.picks.length}/20)
+                        </Text>
 
-                <DataTable
-                    withTableBorder
-                    withColumnBorders
-                    striped
-                    highlightOnHover
-                    textSelectionDisabled
-                    borderRadius="sm"
-                    height={400}
-                    records={records || []}
-                    fetching={isLoading}
-                    columns={[
-                        // TODO: move display logic for secondary schools to serializer/model rather than on the client
-                        { accessor: 'seed', title: 'Seed', width: 70, sortable: true },
-                        { accessor: 'region', title: 'Region', sortable: true },
-                        { accessor: 'name_display', title: 'Team', sortable: true },
-                        { accessor: 'points_per_win', title: 'Points per Win', sortable: true },
-                        { accessor: 'optimistic_max_points', title: 'Maximum Points', sortable: true },
+                        <DataTable
+                            withTableBorder
+                            withColumnBorders
+                            striped
+                            highlightOnHover
+                            textSelectionDisabled
+                            borderRadius="sm"
+                            height={400}
+                            records={records || []}
+                            fetching={isLoading}
+                            columns={[
+                                { accessor: 'seed', title: 'Seed', width: 70, sortable: true },
+                                { accessor: 'region', title: 'Region', sortable: true },
+                                { accessor: 'name_display', title: 'Team', sortable: true },
+                                { accessor: 'points_per_win', title: 'Points per Win', sortable: true },
+                                { accessor: 'optimistic_max_points', title: 'Maximum Points', sortable: true },
+                            ]}
+                            selectedRecords={form.values.picks}
+                            onSelectedRecordsChange={(recs) => form.setFieldValue('picks', recs)}
+                            sortStatus={sortStatus}
+                            onSortStatusChange={setSortStatus}
+                        />
+                        {/* 5. Display pick-specific errors below the table */}
+                        {form.errors.picks && (
+                            <Text color="red" size="xs">{form.errors.picks}</Text>
+                        )}
+                    </Stack>
 
-                    ]}
-                    selectedRecords={selectedTeams}
-                    onSelectedRecordsChange={setSelectedTeams}
-                    sortStatus={sortStatus}
-                    onSortStatusChange={setSortStatus}
-                // logic to limit selection or show warning could go here
-                />
-
-                {selectedTeams.length !== 20 && (
-                    <Text size="xs" color={isValid ? 'black' : 'red'}>
-                        You can select up to 20 teams.
-                    </Text>
-                )}
-
-                <Group justify="flex-end" mt="md">
-                    <Button variant="subtle" onClick={onClose}>Cancel</Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!isValid}
-                        loading={mutation.isPending}
-                        leftSection={entry ? <IconDeviceFloppy size={18} /> : <IconCheck size={18} />}
-                    >
-                        {entry ? "Save Entry" : "Create Entry"}
-                    </Button>
-                </Group>
-            </Stack>
+                    <Group justify="flex-end" mt="md">
+                        <Button variant="subtle" onClick={onClose}>Cancel</Button>
+                        <Button
+                            type="submit"
+                            loading={mutation.isPending}
+                            leftSection={entry ? <IconDeviceFloppy size={18} /> : <IconCheck size={18} />}
+                        >
+                            {entry ? "Save Entry" : "Create Entry"}
+                        </Button>
+                    </Group>
+                </Stack>
+            </form>
         </Modal>
     );
 }

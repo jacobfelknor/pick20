@@ -142,7 +142,7 @@ function EntryList() {
                 )}
             </Group>
 
-            <EntryTable tournamentDetail={tournamentDetail} />
+            <EntryTable tournament={tournament} tournamentDetail={tournamentDetail} />
 
             <EntryFormModal
                 opened={entryCreateOpened}
