@@ -155,7 +155,7 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
                         />
                         {/* 5. Display pick-specific errors below the table */}
                         {form.errors.picks && (
-                            <Text color="red" size="xs">{form.errors.picks}</Text>
+                            <Text color="red">{form.errors.picks}</Text>
                         )}
                     </Stack>
 
