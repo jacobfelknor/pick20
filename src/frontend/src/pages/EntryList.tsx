@@ -51,7 +51,7 @@ function EntryList() {
                                 <Group gap="xs" mt={4}>
                                     <IconCalendar size={14} />
                                     <Text size="sm" c="dimmed">
-                                        Starts: {startDateStr}
+                                        {tournamentDetail?.is_locked ? 'Started' : 'Starts'}: {startDateStr}
                                     </Text>
                                 </Group>
                             </div>
