@@ -10,7 +10,6 @@ import {
     Title,
     Text,
     Anchor,
-    Group,
     Image,
     Stack
 } from "@mantine/core";
