@@ -7,13 +7,13 @@ import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
 
 
-export default function EntryTable({ tournament }: { tournament: string }) {
+export default function EntryTable({ tournamentDetail }: { tournamentDetail: any }) {
     const navigate = useNavigate();
 
     const { data: entries, isLoading } = useQuery({
-        queryKey: ['entries', tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/entries/`).then(res => res.data),
-        enabled: !!tournament,
+        queryKey: ['entries', tournamentDetail?.id],
+        queryFn: () => api.get(`/api/tournament/${tournamentDetail?.id}/entries/`).then(res => res.data),
+        enabled: !!tournamentDetail?.id,
     });
 
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
@@ -45,6 +45,7 @@ export default function EntryTable({ tournament }: { tournament: string }) {
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
                 { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
+                { accessor: 'completed', title: "Entry Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ completed }) => <CheckOrXIcon value={completed} /> },
                 { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}

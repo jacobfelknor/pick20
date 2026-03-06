@@ -50,6 +50,7 @@ class EntrySerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
     tournament_detail = TournamentSerializer(source="tournament", read_only=True)
     picks_detail = serializers.SerializerMethodField()
+    complete = serializers.SerializerMethodField()
 
     class Meta:
         model = Entry
@@ -68,6 +69,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "current_rank",
             "max_potential_rank",
             "still_alive",
+            "complete",
             "teams_remaining",
         ]
         read_only_fields = ["user", "score", "potential_score", "still_alive"]
@@ -78,6 +80,9 @@ class EntrySerializer(serializers.ModelSerializer):
         # default ordering of points earned descending
         picks = sorted(picks, key=lambda x: x.total_points_earned)
         return TournamentTeamSerializer(picks, many=True).data
+
+    def get_complete(self, obj):
+        return obj.picks.count() == 20
 
     def validate(self, data):
         # 1. Grab tournament from data (Create) or instance (Update)
