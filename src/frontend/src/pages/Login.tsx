@@ -55,7 +55,7 @@ function Login() {
                     Login to Felknor's Pick20
                 </Title>
                 <Text color="dimmed" size="sm" ta="center">
-                    Do not have an account yet?{' '}
+                    Don't have an account yet?{' '}
                     <Anchor size="sm" component="button" onClick={() => navigate("/register")}>
                         Create account
                     </Anchor>
