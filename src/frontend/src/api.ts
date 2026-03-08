@@ -39,6 +39,12 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // If the error comes from the token endpoint itself, DON'T refresh.
+    // This allows the "Invalid credentials" error to reach your Login component without a reload
+    if (originalRequest.url?.includes("/api/auth/token/")) {
+      return Promise.reject(error);
+    }
+
     // If 401 and we haven't tried refreshing yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;

@@ -17,6 +17,7 @@ import {
     Progress
 } from "@mantine/core";
 import { IconAt, IconCheck, IconX } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 
 export function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
     return (
@@ -88,7 +89,11 @@ function Register() {
             // We destructure confirmPassword out so we don't send it to the API
             const { confirmPassword, ...registerData } = values;
             await api.post("/api/auth/register/", registerData);
-            alert("Registration successful! Please login.");
+            notifications.show({
+                title: 'Success!',
+                message: "Registration successful! Please login.",
+                color: 'green',
+            });
             navigate("/login");
         } catch (error: any) {
             const responseData = error.response?.data;

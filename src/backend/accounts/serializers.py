@@ -14,7 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "password": {"write_only": True, "required": False},
             "old_password": {"write_only": True, "required": False},
-            "username": {"read_only": True},  # Usually, you don't want users changing usernames
             "email": {"required": True},
         }
 

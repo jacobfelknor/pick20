@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "@mantine/form"; // Added
 import {
     TextInput,
     PasswordInput,
@@ -15,44 +16,52 @@ import {
 } from "@mantine/core";
 
 function Login() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: any) => {
-        e.preventDefault();
+    // 1. Initialize Mantine Form
+    const form = useForm({
+        initialValues: {
+            username: "",
+            password: "",
+        },
+    });
+
+    const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
 
         try {
-            const res = await api.post("/api/auth/token/", { username, password });
+            const res = await api.post("/api/auth/token/", values);
             localStorage.setItem("access", res.data.access);
             localStorage.setItem("refresh", res.data.refresh);
-            navigate("/entries"); // Redirect to dashboard
-        } catch (error) {
-            alert("Login failed! Check your credentials.");
+            navigate("/entries");
+        } catch (error: any) {
+            // 2. Map backend "Detail" or "Non-field" errors to the form
+            // DRF SimpleJWT usually returns { "detail": "No active account found..." }
+            const errorMessage = error.response?.data?.detail || "Invalid username or password";
+
+            form.setErrors({
+                username: " ", // Just highlight the field
+                password: errorMessage + ". Please reach out to the Felknor's if you need to reset your password", // Show the actual message here
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    // redirect to dashboard if already logged in
-    if (localStorage.getItem("access")) {
-        navigate("/entries");
-    }
+    // Redirect logic
+    // Could show a "checking if you're logged in" message here too
+    useEffect(() => {
+        if (localStorage.getItem("access")) {
+            navigate("/entries");
+        }
+    }, [navigate]);
 
     return (
         <Container size={420} my={40}>
             <Stack align="center" gap="xs" mb="lg">
-                <Image
-                    src="/favicon.png"
-                    w={60} // Made it slightly larger for a "hero" look
-                    h={60}
-                    alt="Felknor's Pick20 Logo"
-                />
-                <Title order={2} ta="center">
-                    Login to Felknor's Pick20
-                </Title>
+                <Image src="/favicon.png" w={60} h={60} alt="Logo" />
+                <Title order={2} ta="center">Login to Felknor's Pick20</Title>
                 <Text color="dimmed" size="sm" ta="center">
                     Don't have an account yet?{' '}
                     <Anchor size="sm" component="button" onClick={() => navigate("/register")}>
@@ -62,21 +71,20 @@ function Login() {
             </Stack>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-                <form onSubmit={handleSubmit}>
+                {/* 3. Use form.onSubmit helper */}
+                <form onSubmit={form.onSubmit(handleSubmit)}>
                     <TextInput
                         label="Username"
                         placeholder="Your username"
                         required
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        {...form.getInputProps("username")}
                     />
                     <PasswordInput
                         label="Password"
                         placeholder="Your password"
                         required
                         mt="md"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        {...form.getInputProps("password")}
                     />
                     <Button fullWidth mt="xl" type="submit" loading={loading}>
                         Sign in

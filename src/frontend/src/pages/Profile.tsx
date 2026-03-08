@@ -79,6 +79,7 @@ function Profile() {
                     password: values.password
                 }
                 : {
+                    // intentionally omit the username field, which we don't allow changing
                     email: values.email,
                     first_name: values.first_name,
                     last_name: values.last_name
