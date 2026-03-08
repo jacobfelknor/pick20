@@ -105,11 +105,11 @@ export function AppLayout() {
             onClick={() => handleNavigate('/entries')}
           />
           {/* TODO: add schools */}
-          {/* <NavLink
-          label="Schools"
-          active={location.pathname === '/schools'}
-          onClick={() => handleNavigate('/schools')}
-        /> */}
+          <NavLink
+            label="Teams"
+            active={location.pathname === '/teams'}
+            onClick={() => handleNavigate('/teams')}
+          />
           <NavLink
             label="Profile"
             active={location.pathname === '/profile'}

@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
 import EntryDetail from "./pages/EntryDetail";
 import Profile from "./pages/Profile";
+import TeamList from "./pages/TeamList";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -40,8 +41,8 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: "/schools",
-        element: <div style={{ padding: '20px' }}>Skel Schools Page</div>,
+        path: "/teams",
+        element: <TeamList />,
       },
     ],
   },

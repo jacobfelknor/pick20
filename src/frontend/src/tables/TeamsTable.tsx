@@ -1,25 +1,30 @@
+import { useQuery } from "@tanstack/react-query";
+import api from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
 
 
-export default function PicksTable({ entryDetail }: { entryDetail: any }) {
+export default function TeamsTable({ tournament }: { tournament: string }) {
 
-    const entryPicks = useMemo(() => entryDetail?.picks_detail, [entryDetail])
+    const { data: teams, isLoading } = useQuery({
+        queryKey: ['teams', tournament],
+        queryFn: () => api.get(`/api/tournament/${tournament}/teams/`).then(res => res.data),
+        enabled: !!tournament,
+    });
 
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
-        columnAccessor: 'points',
+        columnAccessor: 'total_points_earned',
         direction: 'desc',
     });
 
-    // This recalculates automatically when 'entryPicks' or 'sortStatus' changes
+    // This recalculates automatically when 'entries' or 'sortStatus' changes
     const records = useMemo(() => {
-        if (!entryPicks) return [];
-        const data = sortBy(entryPicks, sortStatus.columnAccessor);
+        if (!teams) return [];
+        const data = sortBy(teams, sortStatus.columnAccessor);
         return sortStatus.direction === 'desc' ? data.reverse() : data;
-    }, [entryPicks, sortStatus]);
-
+    }, [teams, sortStatus]);
 
     return (
         <DataTable
@@ -28,18 +33,19 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
             striped
             highlightOnHover
             textSelectionDisabled // don't trick users into thinking they can copy. The row click event fires if trying to highlight
-            // fetching={isLoading} // Adds a nice loading overlay
+            fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
                 { accessor: 'total_points_earned', title: "Points Earned", sortable: true },
-                { accessor: 'name_display', title: "School", sortable: true },
-                { accessor: 'seed', sortable: true },
-                { accessor: 'region', sortable: true },
-                { accessor: 'wins', sortable: true },
+                { accessor: 'name_display', title: "Name", sortable: true },
+                { accessor: "seed", title: "Seed", sortable: true },
+                { accessor: "region", title: "Region", sortable: true },
+                { accessor: 'wins', title: "Wins", sortable: true },
                 { accessor: 'points_per_win', title: "Points per Win", sortable: true },
                 { accessor: 'optimistic_potential_points_remaining', title: "Maximum Points Remaining", sortable: true },
                 { accessor: 'optimistic_max_points', title: "Maximum Points", sortable: true },
                 { accessor: 'is_eliminated', title: "Still Alive", sortable: true, render: ({ is_eliminated }) => <CheckOrXIcon value={!is_eliminated} /> },
+                // TODO: add col for admins only that represents "payment received"
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
@@ -47,5 +53,4 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
             minHeight={150}
         />
     );
-
 }
