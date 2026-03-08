@@ -24,9 +24,17 @@ function TeamList() {
             <Title order={2}>{isTournamentDetailLoading ? '...' : tournamentDetail?.year} Tournament</Title>
 
             {(tournamentDetail && !tournamentDetail?.is_locked) &&
-                <Alert variant="light" color="yellow" title="Tournament Hasn't Started!" icon={<IconInfoCircle />}>
+                <Alert variant="light" color="yellow" title="This Tournament Hasn't Started!" icon={<IconInfoCircle />}>
                     This tournament doesn't start until <b>{startDateStr}</b>!
                 </Alert>
+            }
+
+            {(tournamentDetail && tournamentDetail?.concluded) &&
+                <Alert variant="light" color="light" title="This Tournament Has Concluded!" icon={<IconInfoCircle />}></Alert>
+            }
+
+            {(tournamentDetail && !tournamentDetail?.concluded && tournamentDetail?.is_locked) &&
+                <Alert variant="light" color="blue" title="This Tournament is in Progress!" icon={<IconInfoCircle />}></Alert>
             }
 
             <Title order={3}>Tournament Teams</Title>

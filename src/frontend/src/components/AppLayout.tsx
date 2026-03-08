@@ -51,7 +51,12 @@ export function AppLayout() {
   const handleTournamentChange = (value: string) => {
     setTournament(value);
     localStorage.setItem('selectedTournament', value);
-    navigate("/entries")
+    // if we're not on an teams view, switch back to the entries table.
+    // it only makes sense to see the same page after switching years 
+    // if the object can span tournaments - right now that is only the teams list
+    if (!location.pathname.includes('/teams')) {
+      navigate("/entries")
+    }
   }
 
 
@@ -101,7 +106,7 @@ export function AppLayout() {
           </Text>
           <NavLink
             label="Entries"
-            active={location.pathname === '/entries' || location.pathname.includes("/entry")}
+            active={location.pathname.includes('/entries')}
             onClick={() => handleNavigate('/entries')}
           />
           {/* TODO: add schools */}
