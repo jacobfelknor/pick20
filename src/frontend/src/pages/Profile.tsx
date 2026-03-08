@@ -8,21 +8,17 @@ import {
     Container,
     Paper,
     Title,
-    Text,
     Stack,
     Center,
-    Progress,
-    Divider,
     Loader,
 } from "@mantine/core";
-import { IconAt, IconCheck, IconX, IconUser } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { PasswordRequirement, getStrength, requirements } from "./Register";
 
 
 function Profile() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -30,7 +26,8 @@ function Profile() {
             email: "",
             first_name: "",
             last_name: "",
-            password: "", // Optional for edit
+            old_password: "", // Added this
+            password: "",
             confirmPassword: "",
         },
         validate: {
@@ -40,12 +37,13 @@ function Profile() {
                     : "Username must be lowercase with no spaces",
             email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
             // Only validate password if the user actually typed something in it
+            old_password: (value) => (isChangingPassword && !value ? "Current password is required" : null),
             password: (value) =>
-                value && !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(value)
+                isChangingPassword && !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(value)
                     ? "Must be 8+ characters with a letter and a number"
                     : null,
             confirmPassword: (value, values) =>
-                values.password && value !== values.password ? "Passwords do not match" : null,
+                isChangingPassword && value !== values.password ? "Passwords do not match" : null,
         },
     });
 
@@ -74,24 +72,29 @@ function Profile() {
 
     const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
-
         try {
-            const { confirmPassword, ...updateData } = values;
+            const payload: any = isChangingPassword
+                ? {
+                    old_password: values.old_password,
+                    password: values.password
+                }
+                : {
+                    email: values.email,
+                    first_name: values.first_name,
+                    last_name: values.last_name
+                };
 
-            // If password is empty, don't send it to the backend
-            if (!updateData.password) {
-                delete updateData.password;
-            }
+            await api.patch("/api/auth/user/", payload);
 
-            await api.patch("/api/auth/user/", updateData);
-            // Clear password fields after success
-            form.setFieldValue("password", "");
-            form.setFieldValue("confirmPassword", "");
             notifications.show({
                 title: 'Success!',
-                message: "Profile updated successfully.",
+                message: isChangingPassword ? "Password updated." : "Profile updated.",
                 color: 'green',
             });
+
+            // Reset view and clear passwords
+            setIsChangingPassword(false);
+            form.setValues({ ...form.values, old_password: "", password: "", confirmPassword: "" });
         } catch (error: any) {
             form.setErrors(error.response?.data || { message: "Update failed" });
         } finally {
@@ -103,79 +106,66 @@ function Profile() {
 
     return (
         <Container size={460} my={40}>
-            <Title order={2} ta="center">Profile Settings</Title>
-            <Text c="dimmed" size="sm" ta="center" mt={5}>
-                Update your personal information
-            </Text>
+            <Title order={2} ta="center">
+                {isChangingPassword ? "Change Password" : "Profile Settings"}
+            </Title>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-
                 <form onSubmit={form.onSubmit(handleSubmit)}>
                     <Stack>
-                        <TextInput
-                            label="Username"
-                            disabled // Often usernames are immutable, remove 'disabled' if allowed
-                            leftSection={<IconUser size={16} />}
-                            {...form.getInputProps("username")}
-                        />
-                        <TextInput
-                            label="Email"
-                            required
-                            leftSection={<IconAt size={16} />}
-                            {...form.getInputProps("email")}
-                        />
-                        <TextInput
-                            label="First Name"
-                            {...form.getInputProps("first_name")}
-                        />
-                        <TextInput
-                            label="Last Name"
-                            {...form.getInputProps("last_name")}
-                        />
+                        {!isChangingPassword ? (
+                            // --- PROFILE VIEW ---
+                            <>
+                                <TextInput label="Username" disabled {...form.getInputProps("username")} />
+                                <TextInput label="Email" required {...form.getInputProps("email")} />
+                                <TextInput label="First Name" {...form.getInputProps("first_name")} />
+                                <TextInput label="Last Name" {...form.getInputProps("last_name")} />
 
-                        {/* <Divider label="Security" labelPosition="center" my="lg" />
+                                <Button
+                                    variant="subtle"
+                                    size="xs"
+                                    color="red"
+                                    onClick={() => setIsChangingPassword(true)}
+                                >
+                                    Change Password
+                                </Button>
+                            </>
+                        ) : (
+                            // --- PASSWORD VIEW ---
+                            <>
+                                <PasswordInput
+                                    label="Current Password"
+                                    required
+                                    {...form.getInputProps("old_password")}
+                                />
+                                <PasswordInput
+                                    label="New Password"
+                                    required
+                                    {...form.getInputProps("password")}
+                                />
+                                <PasswordInput
+                                    label="Confirm New Password"
+                                    required
+                                    {...form.getInputProps("confirmPassword")}
+                                />
 
-                        <div>
-                            <PasswordInput
-                                label="New Password"
-                                placeholder="Leave blank to keep current"
-                                {...form.getInputProps("password")}
-                            />
+                                <Button
+                                    variant="subtle"
+                                    size="xs"
+                                    onClick={() => setIsChangingPassword(false)}
+                                >
+                                    Back to Profile
+                                </Button>
+                            </>
+                        )}
 
-                            {form.values.password && (
-                                <>
-                                    <Progress
-                                        color={getStrength(form.values.password) === 100 ? 'teal' : 'yellow'}
-                                        value={getStrength(form.values.password)}
-                                        size={5}
-                                        mt="xs"
-                                    />
-                                    {requirements.map((req, index) => (
-                                        <PasswordRequirement
-                                            key={index}
-                                            label={req.label}
-                                            meets={req.re.test(form.values.password)}
-                                        />
-                                    ))}
-                                </>
-                            )}
-                        </div>
-
-                        <PasswordInput
-                            label="Confirm New Password"
-                            placeholder="Confirm your new password"
-                            {...form.getInputProps("confirmPassword")}
-                        /> */}
-
-                        <Button fullWidth mt="xl" type="submit" loading={loading} color="blue">
-                            Save Changes
+                        <Button fullWidth mt="xl" type="submit" loading={loading}>
+                            {isChangingPassword ? "Update Password" : "Save Changes"}
                         </Button>
                     </Stack>
                 </form>
-
             </Paper>
         </Container>
-
     );
 }
 

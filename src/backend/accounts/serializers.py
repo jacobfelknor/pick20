@@ -6,15 +6,24 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    old_password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "password", "full_name"]
+        fields = ["id", "username", "email", "first_name", "last_name", "password", "old_password", "full_name"]
         extra_kwargs = {
             "password": {"write_only": True, "required": False},
+            "old_password": {"write_only": True, "required": False},
             "username": {"read_only": True},  # Usually, you don't want users changing usernames
             "email": {"required": True},
         }
+
+    # In your Serializer
+    def validate_old_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is incorrect.")
+        return value
 
     def create(self, validated_data):
         # This handles hashing during registration
