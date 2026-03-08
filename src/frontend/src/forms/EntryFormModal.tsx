@@ -115,6 +115,7 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
             onClose={onClose}
             title={entry ? "Edit Entry" : "Create New Entry"}
             size="75%"
+            fullScreen={window.innerWidth < 768}
         >
             {/* 4. Use form.onSubmit to handle validation and submission */}
             <form onSubmit={form.onSubmit((values) => mutation.mutate(values))}>
