@@ -110,11 +110,11 @@ export function AppLayout() {
           active={location.pathname === '/schools'}
           onClick={() => handleNavigate('/schools')}
         /> */}
-          {/* <NavLink
+          <NavLink
             label="Profile"
             active={location.pathname === '/profile'}
             onClick={() => handleNavigate('/profile')}
-          /> */}
+          />
         </AppShell.Section>
 
         {/* Mobile-only Logout at the bottom of the drawer */}

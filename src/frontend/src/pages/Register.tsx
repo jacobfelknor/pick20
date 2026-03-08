@@ -18,7 +18,7 @@ import {
 } from "@mantine/core";
 import { IconAt, IconCheck, IconX } from "@tabler/icons-react";
 
-function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+export function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
     return (
         <Text component="div" color={meets ? 'teal' : 'red'} mt={5} size="sm">
             <Center inline>
@@ -29,13 +29,13 @@ function PasswordRequirement({ meets, label }: { meets: boolean; label: string }
     );
 }
 
-const requirements = [
+export const requirements = [
     { re: /.{8,}/, label: 'Has at least 8 characters' },
     { re: /[0-9]/, label: 'Includes number' },
     { re: /[A-Za-z]/, label: 'Includes letter' },
 ];
 
-function getStrength(password: string) {
+export function getStrength(password: string) {
     let multiplier = password.length > 0 ? 1 : 0;
     requirements.forEach((requirement) => {
         if (!requirement.re.test(password)) {

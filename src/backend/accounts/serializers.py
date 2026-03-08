@@ -9,14 +9,31 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        # fields = ["id", "username", "email", "first_name", "last_name", "password"]
-        # TODO: probably should limit this, but during dev I want all the info
-        fields = "__all__"
-        extra_kwargs = {"password": {"write_only": True}}
+        fields = ["id", "username", "email", "first_name", "last_name", "password", "full_name"]
+        extra_kwargs = {
+            "password": {"write_only": True, "required": False},
+            "username": {"read_only": True},  # Usually, you don't want users changing usernames
+            "email": {"required": True},
+        }
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
+        # This handles hashing during registration
+        return User.objects.create_user(**validated_data)
+
+    def update(self, instance, validated_data):
+        # 1. Extract the password from the data
+        password = validated_data.pop("password", None)
+
+        # 2. Update all other fields (email, names, etc.)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # 3. If a new password was provided, hash it properly
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"

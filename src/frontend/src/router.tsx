@@ -5,6 +5,7 @@ import EntryList from "./pages/EntryList";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
 import EntryDetail from "./pages/EntryDetail";
+import Profile from "./pages/Profile";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element: <div style={{ padding: '20px' }}>Skel User Profile Page</div>,
+        element: <Profile />,
       },
       {
         path: "/schools",

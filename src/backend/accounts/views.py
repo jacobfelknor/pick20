@@ -16,6 +16,15 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]  # Allow anyone to register
 
 
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
