@@ -42,6 +42,8 @@ api.interceptors.response.use(
     // If the error comes from the token endpoint itself, DON'T refresh.
     // This allows the "Invalid credentials" error to reach your Login component without a reload
     if (originalRequest.url?.includes("/api/auth/token/")) {
+      // clear local storage to force a login.
+      localStorage.clear();
       return Promise.reject(error);
     }
 
