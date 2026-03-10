@@ -3,7 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import api from '../api';
+import api, { logOutUser } from '../api';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
@@ -14,7 +14,7 @@ export function AppLayout() {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.clear();
+    logOutUser();
     navigate('/login');
   };
 

@@ -103,7 +103,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "pick20",
         "USER": "admin",
-        "PASSWORD": "pick20", # TODO: use a secrets manager
+        "PASSWORD": "pick20",  # TODO: use a secrets manager
         "HOST": "pick20-db",
         "PORT": "5432",
     }
@@ -143,10 +143,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-STATIC_ROOT = Path(__file__).parent / 'staticfiles'
+STATIC_ROOT = Path(__file__).parent / "staticfiles"
 STATIC_URL = "/static/"
 
-MEDIA_ROOT = Path(__file__).parent / 'media'
+MEDIA_ROOT = Path(__file__).parent / "media"
 MEDIA_URL = "/media/"
 
 # Default primary key field type

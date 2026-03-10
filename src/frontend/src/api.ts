@@ -7,6 +7,11 @@ const DEV_URL = "http://localhost:8000";
 // Use the environment variable, or fall back to dev if it's undefined
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
 
+export const logOutUser = () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+}
+
 if (import.meta.env.DEV) {
   console.log("🛠️ API running in Development Mode:", BASE_URL);
 } else {
@@ -34,44 +39,57 @@ api.interceptors.request.use(
 );
 
 // 4. Response Interceptor (The Refresh Logic)
+// Define your endpoints clearly to avoid substring matching issues
+const LOGIN_URL = "/api/auth/token/";
+const REFRESH_URL = "/api/auth/token/refresh/";
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const url = originalRequest.url || "";
 
-    // If the error comes from the token endpoint itself, DON'T refresh.
-    // This allows the "Invalid credentials" error to reach your Login component without a reload
-    if (originalRequest.url?.includes("/api/auth/token/")) {
-      // clear local storage to force a login.
-      localStorage.clear();
+    // 1. Logic for REFRESH FAILURES (The Loop Killer)
+    // If the call that failed WAS the refresh attempt, the session is dead.
+    if (url.includes(REFRESH_URL)) {
+      logOutUser();
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 
-    // If 401 and we haven't tried refreshing yet
+    // 2. Logic for LOGIN FAILURES
+    // If this is the initial login, don't refresh or redirect.
+    // Just pass the error back so the UI can show "Invalid credentials".
+    if (url === LOGIN_URL) {
+      return Promise.reject(error);
+    }
+
+    // 3. Logic for EXPIRED ACCESS TOKENS (Standard 401)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = localStorage.getItem("refresh");
+        if (!refreshToken) throw new Error("No refresh token available");
 
-        // We use standard axios here to avoid an infinite loop 
-        // back to this interceptor if the refresh call itself fails
+        // Use standard axios to avoid interceptor loops
         const response = await axios.post<RefreshResponse>(
-          `${BASE_URL}/api/auth/token/refresh/`,
+          `${BASE_URL}${REFRESH_URL}`,
           { refresh: refreshToken }
         );
 
         const { access } = response.data;
         localStorage.setItem("access", access);
 
-        // Update the failed request and try again
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access}`;
         }
+
         return api(originalRequest);
       } catch (refreshError) {
-        // If the refresh token is also dead, log them out
-        localStorage.clear();
+        // This catch block is actually a backup now, 
+        // as the "REFRESH_URL" check at the top handles most cases.
+        logOutUser();
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
