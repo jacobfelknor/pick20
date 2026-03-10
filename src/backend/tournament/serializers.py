@@ -23,7 +23,8 @@ class TournamentSerializer(serializers.ModelSerializer):
 
 
 class TournamentTeamSerializer(serializers.ModelSerializer):
-    school_name = serializers.SerializerMethodField()
+    school_name = serializers.CharField(source="school.name", read_only=True)
+    num_entries_picked = serializers.IntegerField(source="entries_count", read_only=True)
 
     class Meta:
         model = TournamentTeam
@@ -40,10 +41,8 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
             "total_points_earned",
             "optimistic_max_points",
             "optimistic_potential_points_remaining",
+            "num_entries_picked",
         ]
-
-    def get_school_name(self, obj):
-        return obj.school.name
 
 
 class EntrySerializer(serializers.ModelSerializer):

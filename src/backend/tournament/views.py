@@ -1,6 +1,7 @@
 # Create your views here.
 
 from django.db import transaction
+from django.db.models import Count
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
@@ -35,7 +36,15 @@ class TournamentTeamListView(generics.ListAPIView):
 
     def get_queryset(self):
         tournament_id = self.kwargs.get("tournament_id")
-        qs = models.TournamentTeam.objects.filter(tournament=tournament_id)
+        qs = (
+            models.TournamentTeam.objects.filter(tournament=tournament_id)
+            # pre-select the school info, so we don't need to re-query in our serializer
+            .select_related("school")
+            # efficiently obtain the number of entries who picked this tournament team
+            # without doing N+1 queries in the serializers
+            .annotate(entries_count=Count("entry"))
+            .all()
+        )
         return qs
 
 

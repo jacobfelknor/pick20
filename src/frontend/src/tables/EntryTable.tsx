@@ -43,7 +43,7 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
                 { accessor: 'user_detail.full_name', title: "Created By", sortable: true },
                 { accessor: 'score', sortable: true },
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
-                { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
+                // { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
                 { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
                 { accessor: 'complete', title: "Entry Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
                 { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
