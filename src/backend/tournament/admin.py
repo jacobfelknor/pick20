@@ -78,8 +78,10 @@ class EntryAdmin(admin.ModelAdmin):
         "potential_score",
         "still_alive",
         "picks_count",
+        "paid",
     )
-    list_filter = ("tournament", "still_alive")
+    list_editable = ("paid",)
+    list_filter = ("tournament", "still_alive", "paid")
     search_fields = ("name", "user__username", "user__email")
     ordering = ("-score", "-potential_score")
 

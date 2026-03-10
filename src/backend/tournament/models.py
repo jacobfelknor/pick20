@@ -1,8 +1,7 @@
-# Create your models here.
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class School(models.Model):
@@ -161,8 +160,8 @@ class Entry(models.Model):
     current_rank = models.PositiveIntegerField("Current Rank", default=0)
     max_potential_rank = models.PositiveIntegerField("Max Potential Rank", default=0)
 
-    # TODO: add payment tracking
-    # payment_received = models.BooleanField("Payment Received", default=False)
+    # payment tracking
+    paid = models.BooleanField("Payment Received", default=False)
 
     class Meta:
         unique_together = ("name", "user", "tournament")  # User's can have multiple entries per year
