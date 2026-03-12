@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
@@ -22,11 +22,23 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
     });
 
     // This recalculates automatically when 'entries' or 'sortStatus' changes
-    const records = useMemo(() => {
+    const allRecords = useMemo(() => {
         if (!entries) return [];
         const data = sortBy(entries, sortStatus.columnAccessor);
         return sortStatus.direction === 'desc' ? data.reverse() : data;
     }, [entries, sortStatus]);
+
+    const PAGE_SIZES = [15, 25, 50, 100];
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(PAGE_SIZES[1]);
+    const [records, setRecords] = useState(allRecords.slice(0, pageSize));
+
+    useEffect(() => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setRecords(allRecords.slice(from, to));
+    }, [page, allRecords]);
 
     return (
         <DataTable
@@ -57,6 +69,12 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
             }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
+            totalRecords={allRecords.length}
+            recordsPerPage={pageSize}
+            page={page}
+            onPageChange={(p) => setPage(p)}
+            recordsPerPageOptions={PAGE_SIZES}
+            onRecordsPerPageChange={setPageSize}
             // Ensure the table has a height to show the "no data" icon
             minHeight={150}
         />
