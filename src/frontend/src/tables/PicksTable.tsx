@@ -31,15 +31,15 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
             // fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
-                { accessor: 'total_points_earned', title: "Points Earned", sortable: true },
+                { accessor: 'total_points_earned', title: "Points", sortable: true },
                 { accessor: 'name_display', title: "School", sortable: true },
                 { accessor: 'seed', sortable: true },
                 { accessor: 'region', sortable: true },
                 { accessor: 'wins', sortable: true },
-                { accessor: 'points_per_win', title: "Points per Win", sortable: true },
-                { accessor: 'optimistic_potential_points_remaining', title: "Maximum Points Remaining", sortable: true },
-                { accessor: 'optimistic_max_points', title: "Maximum Points", sortable: true },
-                { accessor: 'is_eliminated', title: "Still Alive", sortable: true, render: ({ is_eliminated }) => <CheckOrXIcon value={!is_eliminated} /> },
+                { accessor: 'points_per_win', title: "Points/Win", sortable: true },
+                // { accessor: 'optimistic_potential_points_remaining', title: "Max Points Remaining", sortable: true },
+                { accessor: 'optimistic_max_points', title: "Max Points", sortable: true },
+                { accessor: 'is_eliminated', title: "Alive", sortable: true, render: ({ is_eliminated }) => <CheckOrXIcon value={!is_eliminated} /> },
             ]}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}

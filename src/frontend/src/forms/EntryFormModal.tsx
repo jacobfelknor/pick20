@@ -146,8 +146,8 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
                                 { accessor: 'seed', title: 'Seed', width: 70, sortable: true },
                                 { accessor: 'region', title: 'Region', sortable: true },
                                 { accessor: 'name_display', title: 'Team', sortable: true },
-                                { accessor: 'points_per_win', title: 'Points per Win', sortable: true },
-                                { accessor: 'optimistic_max_points', title: 'Maximum Points', sortable: true },
+                                { accessor: 'points_per_win', title: 'Points/Win', sortable: true },
+                                { accessor: 'optimistic_max_points', title: 'Max Points', sortable: true },
                             ]}
                             selectedRecords={form.values.picks}
                             onSelectedRecordsChange={(recs) => form.setFieldValue('picks', recs)}
