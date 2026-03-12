@@ -39,14 +39,14 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
             records={records}
             columns={[
                 { accessor: 'current_rank', title: "#", sortable: true },
-                { accessor: 'name', title: "Entry Name", sortable: true },
+                { accessor: 'name', title: "Name", sortable: true },
                 { accessor: 'user_detail.full_name', title: "Created By", sortable: true },
                 { accessor: 'score', sortable: true },
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
-                { accessor: 'potential_score', title: "Maximum Potential Score", sortable: true },
-                { accessor: 'teams_remaining', title: "Teams Remaining", sortable: true },
-                { accessor: 'complete', title: "Entry Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
-                { accessor: 'still_alive', title: "Still Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
+                { accessor: 'potential_score', title: "Max Score", sortable: true },
+                { accessor: 'teams_remaining', title: "Teams Left", sortable: true },
+                { accessor: 'complete', title: "Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
+                { accessor: 'still_alive', title: "Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}
             onRowClick={({ record, index, event }) => {
