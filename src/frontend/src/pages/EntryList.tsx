@@ -130,7 +130,7 @@ function EntryList() {
             }
 
             <Group justify="space-between" align="center">
-                <Title order={3}>Entries</Title>
+                <Title order={3}>{tournamentDetail?.is_locked ? 'Standings' : 'Entries'}</Title>
                 {/* Only show create button if tournament isn't locked */}
                 {!tournamentDetail?.is_locked && (
                     <Button

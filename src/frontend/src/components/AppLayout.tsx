@@ -46,6 +46,14 @@ export function AppLayout() {
   }, [data, tournament]);
 
 
+  const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
+    queryKey: ['tournamentDetail', tournament],
+    queryFn: () => api.get(`/api/tournament/${tournament}/`).then(res => res.data),
+    enabled: !!tournament,
+  });
+  isTournamentDetailLoading; // trick linter for now. I want to remember this is available
+
+
   // consider using the useLocalStorage() hook from @mantine/hooks
   // rather than useState + this handler
   const handleTournamentChange = (value: string) => {
@@ -105,7 +113,7 @@ export function AppLayout() {
             Navigation
           </Text>
           <NavLink
-            label="Entries"
+            label={tournamentDetail?.is_locked ? "Standings" : "Entries"}
             active={location.pathname.includes('/entries')}
             onClick={() => handleNavigate('/entries')}
           />

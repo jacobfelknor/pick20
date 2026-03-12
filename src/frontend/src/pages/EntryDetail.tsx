@@ -45,7 +45,7 @@ const EntryDetail = () => {
                 onClick={() => navigate("/entries")}
                 variant="filled"
             >
-                Back to Entries
+                Back to {tournamentDetail?.is_locked ? 'Standings' : 'Entries'}
             </Button>
             <br />
             <br />
