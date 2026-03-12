@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
+import { MultiSelect } from "@mantine/core";
+import { IconSearch } from "@tabler/icons-react";
 
 
 export default function EntryTable({ tournament, tournamentDetail }: { tournament: string, tournamentDetail: any }) {
@@ -36,9 +38,24 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
     useEffect(() => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRecords(allRecords.slice(from, to));
     }, [page, allRecords]);
+
+    const usersWithEntries = useMemo(() => {
+        const users = new Set(allRecords.map((e: any) => e.user_detail.full_name));
+        return [...users];
+    }, [allRecords]);
+
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+    useEffect(() => {
+        setRecords(
+            allRecords.filter(({ user_detail }) => {
+                if (selectedUsers.length && !selectedUsers.some((d) => d === user_detail.full_name)) return false;
+                return true;
+            })
+        );
+    }, [selectedUsers]);
 
     return (
         <DataTable
@@ -52,7 +69,26 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
             columns={[
                 { accessor: 'current_rank', title: "#", sortable: true },
                 { accessor: 'name', title: "Name", sortable: true },
-                { accessor: 'user_detail.full_name', title: "Created By", sortable: true },
+                {
+                    accessor: 'user_detail.full_name',
+                    title: "Created By",
+                    sortable: true,
+                    filter: (
+                        <MultiSelect
+                            label="Users"
+                            description="Show all entries for the selected user(s)"
+                            data={usersWithEntries}
+                            value={selectedUsers}
+                            placeholder="Search users..."
+                            onChange={setSelectedUsers}
+                            leftSection={<IconSearch size={16} />}
+                            comboboxProps={{ withinPortal: false }}
+                            clearable
+                            searchable
+                        />
+                    ),
+                    filtering: selectedUsers.length > 0,
+                },
                 { accessor: 'score', sortable: true },
                 // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
                 { accessor: 'potential_score', title: "Max Score", sortable: true },
