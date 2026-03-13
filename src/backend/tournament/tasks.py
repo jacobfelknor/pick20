@@ -1,10 +1,11 @@
 from django.db.models import Case, F, IntegerField, Max, Sum, Value, When, Window
 from django.db.models.functions import Rank
+from django.utils import timezone
 
-from .models import Entry, TournamentTeam
+from .models import Entry, Tournament, TournamentTeam
 
 
-def update_tournament_scores(tournament):
+def update_tournament_scores(tournament: Tournament, set_standings_last_updated: bool = False):
     """
     Recalculates and saves the current_score for all entries
     within a specific tournament.
@@ -79,3 +80,10 @@ def update_tournament_scores(tournament):
     Entry.objects.bulk_update(
         updated_entries, ["score", "potential_score", "current_rank", "max_potential_rank", "still_alive"]
     )
+
+    # 5. Update tournament standing last updated at, if requested
+    #    Intended to only be used when an admin has updated win counts for
+    #    TournamentTeams
+    if set_standings_last_updated:
+        tournament.standings_last_updated_at = timezone.now()
+        tournament.save()

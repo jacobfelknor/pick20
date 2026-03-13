@@ -11,6 +11,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "id",
             "year",
             "start_date",
+            "standings_last_updated_at",
             "concluded",
             "is_locked",
             "total_entries",

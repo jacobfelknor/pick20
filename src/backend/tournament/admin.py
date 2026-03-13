@@ -26,7 +26,7 @@ class TournamentAdmin(admin.ModelAdmin):
     @admin.action(description="Recalculate scores for all entries in this tournament")
     def recalculate_all_scores(self, request, queryset):
         for tournament in queryset:
-            update_tournament_scores(tournament)
+            update_tournament_scores(tournament, set_standings_last_updated=True)
 
         self.message_user(request, f"Scores updated for {len(queryset)} tournament(s)")
 

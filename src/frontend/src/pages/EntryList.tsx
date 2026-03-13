@@ -30,6 +30,7 @@ function EntryList() {
     }
 
     const startDateStr = useMemo(() => `${dayjs(tournamentDetail?.start_date).format("h:mm A")} on ${dayjs(tournamentDetail?.start_date).format("MMMM D, YYYY")}`, [tournamentDetail])
+    const standingsUpdatedAtDateStr = useMemo(() => `${dayjs(tournamentDetail?.standings_last_updated_at).format("h:mm A")} on ${dayjs(tournamentDetail?.standings_last_updated_at).format("MMMM D, YYYY")}`, [tournamentDetail])
 
     return (
         <Stack>
@@ -130,7 +131,7 @@ function EntryList() {
             }
 
             <Group justify="space-between" align="center">
-                <Title order={3}>{tournamentDetail?.is_locked ? 'Standings' : 'Entries'}</Title>
+                <Title order={3}>{tournamentDetail?.is_locked ? 'Standings' : 'Entries'} {tournamentDetail?.is_locked && <Text size="xs">as of {standingsUpdatedAtDateStr}</Text>}</Title>
                 {/* Only show create button if tournament isn't locked */}
                 {!tournamentDetail?.is_locked && (
                     <Button
@@ -141,7 +142,6 @@ function EntryList() {
                     </Button>
                 )}
             </Group>
-
             <EntryTable tournament={tournament} tournamentDetail={tournamentDetail} />
 
             <EntryFormModal

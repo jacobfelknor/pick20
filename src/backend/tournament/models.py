@@ -27,6 +27,10 @@ class Tournament(models.Model):
     year = models.IntegerField(unique=True)  # e.g., 2024
     start_date = models.DateTimeField(help_text="The timestamp when the first game starts. Picks lock after this.")
     concluded = models.BooleanField(default=False, help_text="Tournament has concluded")
+    standings_last_updated_at = models.DateTimeField(
+        help_text="The last time a tournament's standings were updated by an admin",
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.year} Tournament"
