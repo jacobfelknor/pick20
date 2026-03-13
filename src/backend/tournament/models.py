@@ -30,6 +30,7 @@ class Tournament(models.Model):
     standings_last_updated_at = models.DateTimeField(
         help_text="The last time a tournament's standings were updated by an admin",
         null=True,
+        blank=True,
     )
 
     def __str__(self):

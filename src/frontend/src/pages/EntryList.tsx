@@ -131,7 +131,7 @@ function EntryList() {
             }
 
             <Group justify="space-between" align="center">
-                <Title order={3}>{tournamentDetail?.is_locked ? 'Standings' : 'Entries'} {tournamentDetail?.is_locked && <Text size="xs">as of {standingsUpdatedAtDateStr}</Text>}</Title>
+                <Title order={3}>{tournamentDetail?.is_locked ? 'Standings' : 'Entries'} {(tournamentDetail?.is_locked && tournamentDetail?.standings_last_updated_at) && <Text size="xs">as of {standingsUpdatedAtDateStr}</Text>}</Title>
                 {/* Only show create button if tournament isn't locked */}
                 {!tournamentDetail?.is_locked && (
                     <Button
