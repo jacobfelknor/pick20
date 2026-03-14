@@ -36,7 +36,7 @@ export default function TeamsTable({ tournament }: { tournament: string }) {
             fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
-                { accessor: 'name_display', title: "Name", sortable: true },
+                { accessor: 'name_display', title: "School", sortable: true },
                 { accessor: 'total_points_earned', title: "Points", sortable: true },
                 { accessor: "seed", title: "Seed", sortable: true },
                 { accessor: "region", title: "Region", sortable: true },
