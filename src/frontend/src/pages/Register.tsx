@@ -98,6 +98,11 @@ function Register() {
         } catch (error: any) {
             const responseData = error.response?.data;
             form.setErrors(responseData);
+            notifications.show({
+                title: 'Error!',
+                message: "Registration failed! Please try again.",
+                color: 'red',
+            });
         } finally {
             setLoading(false);
         }
