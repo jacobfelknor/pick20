@@ -69,6 +69,12 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
             columns={[
                 { accessor: 'current_rank', title: "#", sortable: true },
                 { accessor: 'name', title: "Name", sortable: true },
+                { accessor: 'score', sortable: true },
+                // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
+                { accessor: 'potential_score', title: "Max Score", sortable: true },
+                { accessor: 'teams_remaining', title: "Teams Left", sortable: true },
+                { accessor: 'complete', title: "Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
+                { accessor: 'still_alive', title: "Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 {
                     accessor: 'user_detail.full_name',
                     title: "Created By",
@@ -89,12 +95,6 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
                     ),
                     filtering: selectedUsers.length > 0,
                 },
-                { accessor: 'score', sortable: true },
-                // { accessor: 'potential_score_remaining', title: "Maximum Remaining Points", sortable: true },
-                { accessor: 'potential_score', title: "Max Score", sortable: true },
-                { accessor: 'teams_remaining', title: "Teams Left", sortable: true },
-                { accessor: 'complete', title: "Complete", sortable: true, hidden: tournamentDetail?.is_locked, render: ({ complete }) => <CheckOrXIcon value={complete} /> },
-                { accessor: 'still_alive', title: "Alive", sortable: true, render: ({ still_alive }) => <CheckOrXIcon value={still_alive} /> },
                 // TODO: add col for admins only that represents "payment received"
             ]}
             onRowClick={({ record, index, event }) => {

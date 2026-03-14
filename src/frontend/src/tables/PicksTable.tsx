@@ -9,7 +9,7 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
     const entryPicks = useMemo(() => entryDetail?.picks_detail, [entryDetail])
 
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
-        columnAccessor: 'points',
+        columnAccessor: 'total_points_earned',
         direction: 'desc',
     });
 
@@ -31,8 +31,8 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
             // fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
-                { accessor: 'total_points_earned', title: "Points", sortable: true },
                 { accessor: 'name_display', title: "School", sortable: true },
+                { accessor: 'total_points_earned', title: "Points", sortable: true },
                 { accessor: 'seed', sortable: true },
                 { accessor: 'region', sortable: true },
                 { accessor: 'wins', sortable: true },
