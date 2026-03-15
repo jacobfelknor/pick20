@@ -87,10 +87,15 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
 
     # Determine current round based on the team with the most wins + 1
     # Ensure we don't exceed the total rounds
-    current_round = min(
-        TournamentTeam.objects.filter(tournament=tournament).aggregate(Max("wins"))["wins__max"] + 1,
-        TournamentTeam.MAX_WINS,
-    )
+    max_wins = TournamentTeam.objects.filter(tournament=tournament).aggregate(Max("wins"))["wins__max"]
+    if max_wins:
+        current_round = min(
+            TournamentTeam.objects.filter(tournament=tournament).aggregate(Max("wins"))["wins__max"] + 1,
+            TournamentTeam.MAX_WINS,
+        )
+    else:
+        # if no team has yet won, the current round is 1
+        current_round = 1
 
     # 3. Prepare for Bulk Update
     updated_entries = []
