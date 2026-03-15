@@ -1,47 +1,14 @@
-from django.db.models import Case, F, IntegerField, Max, Sum, When, Window
+from django.db.models import Case, F, IntegerField, Max, Sum, Value, When, Window
 from django.db.models.functions import Rank
 from django.utils import timezone
 
-from .models import Entry, Tournament, TournamentTeam
+from ..models import Entry, Tournament, TournamentTeam
 
-
-def calculate_optimistic_gain(picks, current_round):
-    """
-    Calculates max potential gain by assigning available wins per round
-    to the highest-value teams first, taking into account how many rounds are remaining
-
-    Still does not consider head-to-head match-ups, as this is impossible because we don't
-    actually track a bracket
-    """
-    # 1. Filter for teams not yet eliminated
-    eligible_teams = list(filter(lambda x: not x.is_eliminated, picks))
-
-    # 2. Sort by points-per-win descending (highest value teams first)
-    eligible_teams.sort(key=lambda x: x.points_per_win, reverse=True)
-
-    total_potential_gain = 0
-
-    # 3. Iterate through remaining rounds only
-    # If we are in Round 3, we check slots for Rounds 3, 4, 5, and 6
-    for r in range(current_round, TournamentTeam.MAX_WINS + 1):
-        # Calculate available wins in this round: R1=32, R2=16, R3=8, R4=4, R5=2, R6(Final)=1
-        # Formula: 2^(6 - r)
-        wins_available = 2 ** (TournamentTeam.MAX_WINS - r)
-        wins_awarded = 0
-
-        for team in eligible_teams:
-            # Do we have any more wins left to award?
-            if wins_awarded < wins_available:
-                if team.wins >= r:
-                    # this team already has a win for this round, occupying a win for this round
-                    # but can't further contribute any gain for this round
-                    wins_awarded += 1
-                else:
-                    # award this team a win in our potential gain
-                    total_potential_gain += team.points_per_win
-                    wins_awarded += 1
-
-    return total_potential_gain
+"""
+THIS FILE LEFT FOR REFERENCE
+I'M CALLING THIS THE "SUPER" OPTIMISTIC MAX, BECAUSE IT DOESN'T ACCOUNT FOR THE AVAILABLE WINS/ROUND
+IF THE MORE REIN IN VERSION PROVES TO SLOW OR UNRELIABLE, I CAN REVERT BACK TO THIS
+"""
 
 
 def update_tournament_scores(tournament: Tournament, set_standings_last_updated: bool = False):
@@ -55,7 +22,6 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
     # We use a subquery/cte approach conceptually by chaining annotations
     base_queryset = (
         Entry.objects.filter(tournament=tournament)
-        .prefetch_related("picks")
         .annotate(
             # Current Score Logic
             calculated_points=Sum(
@@ -64,6 +30,21 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
                     When(picks__seed__range=(9, 12), then=F("picks__wins") * 3),
                     When(picks__seed__range=(5, 8), then=F("picks__wins") * 2),
                     When(picks__seed__range=(1, 4), then=F("picks__wins") * 1),
+                    default=0,
+                    output_field=IntegerField(),
+                )
+            )
+        )
+        .annotate(
+            # Optimistic Max Potential Gain Logic
+            # Does not account for head-to-head matchups between your picks
+            calculated_potential_gain=Sum(
+                Case(
+                    When(picks__is_eliminated=True, then=Value(0)),
+                    When(picks__seed__range=(13, 16), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 4),
+                    When(picks__seed__range=(9, 12), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 3),
+                    When(picks__seed__range=(5, 8), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 2),
+                    When(picks__seed__range=(1, 4), then=(Value(TournamentTeam.MAX_WINS) - F("picks__wins")) * 1),
                     default=0,
                     output_field=IntegerField(),
                 )
@@ -85,22 +66,11 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
     # Max Potential Rank = How many people CURRENTLY have a score higher than your POTENTIAL score?
     all_current_scores = sorted([e.calculated_points for e in entries_ranked], reverse=True)
 
-    # Determine current round based on the team with the most wins + 1
-    # Ensure we don't exceed the total rounds
-    current_round = min(
-        TournamentTeam.objects.filter(tournament=tournament).aggregate(Max("wins"))["wins__max"] + 1,
-        TournamentTeam.MAX_WINS,
-    )
-
     # 3. Prepare for Bulk Update
     updated_entries = []
     for entry in entries_ranked:
         entry.score = entry.calculated_points or 0
-
-        # Calculate the capped potential gain
-        # Use .all() to hit the prefetched cache
-        calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), current_round)
-        entry.potential_score = entry.score + (calculated_potential_gain or 0)
+        entry.potential_score = entry.score + (entry.calculated_potential_gain or 0)
         entry.current_rank = entry.temp_current_rank
         entry.still_alive = entry.potential_score >= max_current_score
 
