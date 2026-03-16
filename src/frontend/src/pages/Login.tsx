@@ -68,6 +68,11 @@ function Login() {
                         Create account
                     </Anchor>
                 </Text>
+                <Text color="dimmed" size="sm" mt={5}>
+                    <Anchor size="sm" component="button" onClick={() => navigate("/register/rules")}>
+                        View Rules
+                    </Anchor>
+                </Text>
             </Stack>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">

@@ -7,6 +7,7 @@ import { AppLayout } from "./components/AppLayout";
 import EntryDetail from "./pages/EntryDetail";
 import Profile from "./pages/Profile";
 import TeamList from "./pages/TeamList";
+import Rules from "./pages/Rules";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/register/rules",
+    element: <Rules />
   },
 
   // 2. PROTECTED ROUTES
@@ -43,6 +48,10 @@ const router = createBrowserRouter([
       {
         path: "/teams",
         element: <TeamList />,
+      },
+      {
+        path: "/rules",
+        element: <Rules />,
       },
     ],
   },

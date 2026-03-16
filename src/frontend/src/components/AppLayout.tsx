@@ -124,6 +124,11 @@ export function AppLayout() {
             onClick={() => handleNavigate('/teams')}
           />
           <NavLink
+            label="Rules"
+            active={location.pathname === '/rules'}
+            onClick={() => handleNavigate('/rules')}
+          />
+          <NavLink
             label="Profile"
             active={location.pathname === '/profile'}
             onClick={() => handleNavigate('/profile')}

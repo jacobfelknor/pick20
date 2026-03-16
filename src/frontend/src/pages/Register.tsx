@@ -117,6 +117,11 @@ function Register() {
                     Login
                 </Anchor>
             </Text>
+            <Text color="dimmed" size="sm" mt={5}>
+                <Anchor size="sm" component="button" onClick={() => navigate("/register/rules")}>
+                    View Rules
+                </Anchor>
+            </Text>
 
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={form.onSubmit(handleSubmit)}>
