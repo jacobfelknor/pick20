@@ -63,9 +63,13 @@ class EntryListView(generics.ListAPIView):
         #       viewing other user's entries until a tournament is locked
         qs = models.Entry.objects.all()
         tournament = models.Tournament.objects.get(pk=tournament_id)
-        if not tournament.is_locked and not self.request.user.is_superuser:
-            # before tournament is locked, non-superusers can only view their own entries
+        if not tournament.is_locked:
+            # before tournament is locked, users can only view their own entries
             qs = qs.filter(user=self.request.user)
+
+        # if not tournament.is_locked and not self.request.user.is_superuser:
+        #     # before tournament is locked, non-superusers can only view their own entries
+        #     qs = qs.filter(user=self.request.user)
 
         # Optimization:
         # select_related('user') joins the user table in the initial SQL query
