@@ -75,14 +75,25 @@ function EntryList() {
 
                         {/* Stats Grid */}
                         <Grid>
-                            <Grid.Col span={{ base: 12, sm: 3 }}>
+                            {/* <Grid.Col span={{ base: 12, sm: 3 }}>
                                 <Group align="center" wrap="nowrap">
                                     <ThemeIcon variant="light" size="xl" radius="md" color="green">
-                                        <IconCircleCheck size={24} />
+                                        <IconUsers size={24} />
                                     </ThemeIcon>
                                     <div>
-                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Entries Alive</Text>
-                                        <Text size="xl" fw={700}>{tournamentDetail.entries_alive}</Text>
+                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Participants Alive</Text>
+                                        <Text size="xl" fw={700}>{tournamentDetail.participants_alive}</Text>
+                                    </div>
+                                </Group>
+                            </Grid.Col> */}
+                            <Grid.Col span={{ base: 12, sm: 3 }}>
+                                <Group align="center" wrap="nowrap">
+                                    <ThemeIcon variant="light" size="xl" radius="md" color="blue">
+                                        <IconUsers size={24} />
+                                    </ThemeIcon>
+                                    <div>
+                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Total Participants</Text>
+                                        <Text size="xl" fw={700}>{tournamentDetail.total_participants}</Text>
                                     </div>
                                 </Group>
                             </Grid.Col>
@@ -100,22 +111,11 @@ function EntryList() {
                             <Grid.Col span={{ base: 12, sm: 3 }}>
                                 <Group align="center" wrap="nowrap">
                                     <ThemeIcon variant="light" size="xl" radius="md" color="green">
-                                        <IconUsers size={24} />
+                                        <IconCircleCheck size={24} />
                                     </ThemeIcon>
                                     <div>
-                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Participants Alive</Text>
-                                        <Text size="xl" fw={700}>{tournamentDetail.participants_alive}</Text>
-                                    </div>
-                                </Group>
-                            </Grid.Col>
-                            <Grid.Col span={{ base: 12, sm: 3 }}>
-                                <Group align="center" wrap="nowrap">
-                                    <ThemeIcon variant="light" size="xl" radius="md" color="blue">
-                                        <IconUsers size={24} />
-                                    </ThemeIcon>
-                                    <div>
-                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Total Participants</Text>
-                                        <Text size="xl" fw={700}>{tournamentDetail.total_participants}</Text>
+                                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">Entries Alive</Text>
+                                        <Text size="xl" fw={700}>{tournamentDetail.entries_alive}</Text>
                                     </div>
                                 </Group>
                             </Grid.Col>
