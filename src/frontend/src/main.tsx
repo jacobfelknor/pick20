@@ -8,6 +8,8 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Notifications } from '@mantine/notifications';
 
+import { ModalsProvider } from '@mantine/modals';
+
 const theme = createTheme({
   /** Put your mantine theme override here */
 });
@@ -20,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme}>
         <Notifications />
-        <App />
+        <ModalsProvider>
+          <App />
+        </ModalsProvider>
       </MantineProvider>
     </QueryClientProvider>
   </React.StrictMode>,

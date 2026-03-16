@@ -1,11 +1,13 @@
 import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconTournament, IconTrophy, IconUser } from "@tabler/icons-react";
+import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconTournament, IconTrash, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
 import api from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntryFormModal } from "../forms/EntryFormModal";
 import { useDisclosure } from "@mantine/hooks";
+import { modals } from '@mantine/modals';
+import { notifications } from "@mantine/notifications";
 
 
 const EntryDetail = () => {
@@ -36,6 +38,38 @@ const EntryDetail = () => {
         // query from PicksTable
         queryClient.invalidateQueries({ queryKey: ['entryDetail', id] });
     }
+
+    const handleDelete = () =>
+        modals.openConfirmModal({
+            title: 'Delete Entry',
+            centered: true,
+            children: (
+                <Text size="sm">
+                    Are you sure you want to delete your entry? This action cannot be undone.
+                </Text>
+            ),
+            labels: { confirm: 'Delete', cancel: 'No, keep it' },
+            confirmProps: { color: 'red' },
+            closeOnConfirm: false,
+            onConfirm: () => {
+                // Your API logic here
+                api.delete(`/api/entries/${entryDetail?.id}/`).then(() => {
+                    modals.closeAll();
+                    navigate("/entries");
+                    notifications.show({
+                        title: 'Deleted!',
+                        message: 'Entry successfully deleted.',
+                        color: 'red',
+                    });
+                }).catch(() => {
+                    notifications.show({
+                        title: 'Error!',
+                        message: 'Something went wrong. Please try again.',
+                        color: 'red',
+                    });
+                });
+            },
+        });
 
     return (
         <div style={{ padding: '20px' }}>
@@ -146,14 +180,26 @@ const EntryDetail = () => {
 
             <Group justify="space-between" align="center">
                 <Title order={3}>Picks</Title>
-                {/* Only show create button if tournament isn't locked */}
-                {!tournamentDetail?.is_locked && (
-                    <Button
-                        leftSection={<IconEdit size={18} />}
-                        onClick={openEntryCreateModal}
-                    >
-                        Update Entry
-                    </Button>
+
+                {/* Wrap buttons in a nested Group to keep them together on the right */}
+                {(tournamentDetail && !tournamentDetail?.is_locked) && (
+                    <Group gap="xs">
+                        <Button
+                            variant="subtle"
+                            color="red"
+                            leftSection={<IconTrash size={18} />}
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </Button>
+
+                        <Button
+                            leftSection={<IconEdit size={18} />}
+                            onClick={openEntryCreateModal}
+                        >
+                            Update
+                        </Button>
+                    </Group>
                 )}
             </Group>
             <br />
