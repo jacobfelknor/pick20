@@ -78,7 +78,7 @@ export default function Rules() {
                         <Text size="sm" mb="md">
                             This “Pick 20” pool is a little different than a traditional bracket pool.
                             Instead of a full bracket, you simply <strong>choose 20 teams</strong> that are in the tournament.
-                            Your points accumulate based on how many games your selected teams win. The winner is the entry with the most points at the end of the tournament.
+                            Your points accumulate based on how many games your selected teams win.
                         </Text>
 
                         <Paper withBorder p="sm" bg="var(--mantine-color-gray-0)">
@@ -129,6 +129,29 @@ export default function Rules() {
                             If you are paying for multiple entries or your payment name doesn't match your entry name,
                             please <Anchor href="mailto:jkrbartuska@comcast.net">email Jim</Anchor> to confirm which entries you've paid for.
                         </Text>
+                    </section>
+
+                    {/* Payout Section */}
+                    <section>
+                        <Group mb="sm">
+                            <IconCoin size={20} color="var(--mantine-color-blue-filled)" />
+                            <Title order={4}>Winners & Payout</Title>
+                        </Group>
+                        <Text size="sm" mb="md">
+                            The top 3 finishers will receive payouts in the following percentages of the total pot amount:
+                        </Text>
+
+                        <List spacing="xs" size="sm" type="ordered" center>
+                            <List.Item>
+                                50%
+                            </List.Item>
+                            <List.Item>
+                                30%
+                            </List.Item>
+                            <List.Item>
+                                20%
+                            </List.Item>
+                        </List>
                     </section>
                 </Stack>
 
