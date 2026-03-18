@@ -93,7 +93,7 @@ const EntryDetail = () => {
                             <Group gap="xs" mb={4}>
                                 <IconTrophy size={20} color="var(--mantine-color-blue-filled)" />
                                 <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                                    {entryDetail?.tournament_detail.year} Tournament Entry
+                                    {tournamentDetail?.year} Tournament Entry
                                 </Text>
                             </Group>
                             <Title order={2}>{entryDetail.name}</Title>

@@ -7,6 +7,7 @@ import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
 import { MultiSelect } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
+import { useLocalStorage } from "@mantine/hooks";
 
 
 export default function EntryTable({ tournament, tournamentDetail }: { tournament: string, tournamentDetail: any }) {
@@ -32,14 +33,14 @@ export default function EntryTable({ tournament, tournamentDetail }: { tournamen
 
     const PAGE_SIZES = [15, 25, 50, 100];
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(PAGE_SIZES[1]);
+    const [pageSize, setPageSize] = useLocalStorage({ key: 'entries-page-size', defaultValue: PAGE_SIZES[0] });
     const [records, setRecords] = useState(allRecords.slice(0, pageSize));
 
     useEffect(() => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
         setRecords(allRecords.slice(from, to));
-    }, [page, allRecords]);
+    }, [page, pageSize, allRecords]);
 
     const usersWithEntries = useMemo(() => {
         const users = new Set(allRecords.map((e: any) => e.user_detail.full_name));

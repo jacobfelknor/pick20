@@ -1,15 +1,13 @@
 import { AppShell, Burger, Group, NavLink, Title, Button, Text, NativeSelect, Image } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import api, { logOutUser } from '../api';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
-  const [tournament, setTournament] = useState(() => {
-    return localStorage.getItem('selectedTournament') || "";
-  });
+  const [tournament, setTournament] = useLocalStorage({ key: 'selected-tournament', defaultValue: "" })
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,7 +56,6 @@ export function AppLayout() {
   // rather than useState + this handler
   const handleTournamentChange = (value: string) => {
     setTournament(value);
-    localStorage.setItem('selectedTournament', value);
     // if we're not on an teams view, switch back to the entries table.
     // it only makes sense to see the same page after switching years 
     // if the object can span tournaments - right now that is only the teams list

@@ -10,7 +10,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
 export const logOutUser = () => {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
-  localStorage.removeItem("selectedTournament"); // always default to newest tournament on new login
+  localStorage.removeItem("selected-tournament"); // always default to newest tournament on new login
 }
 
 if (import.meta.env.DEV) {
