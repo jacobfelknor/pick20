@@ -42,9 +42,9 @@ export default function TeamsTable({ tournament }: { tournament: string }) {
                 { accessor: 'is_eliminated', title: "Alive", sortable: true, render: ({ is_eliminated }) => <CheckOrXIcon value={!is_eliminated} /> },
                 { accessor: 'wins', title: "Wins", sortable: true },
                 { accessor: 'points_per_win', title: "Points/Win", sortable: true },
-                { accessor: "region", title: "Region", sortable: true },
                 // { accessor: 'optimistic_potential_points_remaining', title: "Maximum Points Remaining", sortable: true },
                 { accessor: 'optimistic_max_points', title: "Max Points", sortable: true },
+                { accessor: "region", title: "Region", sortable: true },
                 { accessor: 'num_entries_picked', title: "Entries", sortable: true },
                 // TODO: add col for admins only that represents "payment received"
             ]}
