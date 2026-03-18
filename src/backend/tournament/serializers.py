@@ -48,7 +48,6 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
 
 class EntrySerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
-    tournament_detail = TournamentSerializer(source="tournament", read_only=True)
     picks_detail = serializers.SerializerMethodField()
     complete = serializers.SerializerMethodField()
 
@@ -60,7 +59,6 @@ class EntrySerializer(serializers.ModelSerializer):
             "user",
             "user_detail",
             "tournament",
-            "tournament_detail",
             "picks",
             "picks_detail",
             "score",
