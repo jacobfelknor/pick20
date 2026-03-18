@@ -73,8 +73,7 @@ class EntryListView(generics.ListAPIView):
 
         # Optimization:
         # select_related('user') joins the user table in the initial SQL query
-        # prefetch_related('picks') handles the M2M teams in one follow-up query
-        return qs.filter(tournament=tournament_id).select_related("user").prefetch_related("picks")
+        return qs.filter(tournament=tournament_id).select_related("user")
 
 
 class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
