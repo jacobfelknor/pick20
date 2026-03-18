@@ -97,6 +97,12 @@ class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
         self.check_object_permissions(self.request, obj)
         return obj
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        # include picks detail, since we'll use that for the picks table
+        context["picks_detail"] = True
+        return context
+
     def perform_update(self, serializer):
         # still bound by the 'is_locked' logic in the serializer.
         with transaction.atomic():
@@ -112,6 +118,12 @@ class EntryCreateView(generics.CreateAPIView):
     queryset = models.Entry.objects.all()
     serializer_class = serializers.EntrySerializer
     permission_classes = [IsOwnerAdminOrTournamentLocked]  # Reusing your existing logic
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        # include picks detail, since we'll use that to create picks
+        context["picks_detail"] = True
+        return context
 
     def perform_create(self, serializer):
         # Automatically assign the logged-in user to the entry

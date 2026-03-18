@@ -74,6 +74,17 @@ class EntrySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["user", "score", "potential_score", "still_alive"]
 
+    def __init__(self, *args, **kwargs):
+        # Instantiate the superclass normally
+        super().__init__(*args, **kwargs)
+
+        picks_detail = self.context.get("picks_detail", False)
+
+        if not picks_detail:
+            # Drop the field if the flag is not set
+            self.fields.pop("picks_detail", None)
+            self.fields.pop("picks", None)
+
     def get_picks_detail(self, obj):
         # Retrieve the queryset and order it
         picks = obj.picks.all()
