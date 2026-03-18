@@ -110,12 +110,12 @@ class EntrySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user
 
-        queryset = Entry.objects.filter(user=user, name=name)
+        queryset = Entry.objects.filter(user=user, name=name, tournament=tournament)
         if self.instance:
             queryset = queryset.exclude(pk=self.instance.pk)
 
         if queryset.exists():
-            raise serializers.ValidationError({"name": "You already have an entry with this name."})
+            raise serializers.ValidationError({"name": "You already have an entry with this name for this tournament."})
 
         return data
 
