@@ -31,9 +31,9 @@ export default function PicksTable({ entryDetail }: { entryDetail: any }) {
             // fetching={isLoading} // Adds a nice loading overlay
             records={records}
             columns={[
+                { accessor: 'seed', sortable: true },
                 { accessor: 'name_display', title: "School", sortable: true },
                 { accessor: 'total_points_earned', title: "Points", sortable: true },
-                { accessor: 'seed', sortable: true },
                 { accessor: 'region', sortable: true },
                 { accessor: 'wins', sortable: true },
                 { accessor: 'points_per_win', title: "Points/Win", sortable: true },
