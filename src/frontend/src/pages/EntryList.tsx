@@ -8,6 +8,7 @@ import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, Ic
 import { useMemo } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { EntryFormModal } from "../forms/EntryFormModal";
+import { useClockCountDown } from '@gfazioli/mantine-clock';
 
 function EntryList() {
     // context passed from appshell outlet
@@ -31,6 +32,13 @@ function EntryList() {
 
     const startDateStr = useMemo(() => `${dayjs(tournamentDetail?.start_date).format("h:mm A")} on ${dayjs(tournamentDetail?.start_date).format("MMMM D, YYYY")}`, [tournamentDetail])
     const standingsUpdatedAtDateStr = useMemo(() => `${dayjs(tournamentDetail?.standings_last_updated_at).format("h:mm A")} on ${dayjs(tournamentDetail?.standings_last_updated_at).format("MMMM D, YYYY")}`, [tournamentDetail])
+
+    const countdown = useClockCountDown({
+        targetDate: tournamentDetail?.start_date,
+        padHours: true,
+        padMinutes: true,
+        padSeconds: true,
+    });
 
     return (
         <Stack>
@@ -125,9 +133,28 @@ function EntryList() {
             )}
 
             {(tournamentDetail && !tournamentDetail?.is_locked) &&
-                <Alert variant="light" color="yellow" title="Tournament Hasn't Started!" icon={<IconInfoCircle />}>
-                    Until the tournament starts <b>at {startDateStr}</b>, you can only see your own entries.
-                </Alert>
+                <Group grow preventGrowOverflow={false} align="stretch">
+                    <Alert
+                        variant="light"
+                        color="yellow"
+                        title="Tournament Hasn't Started!"
+                        icon={<IconInfoCircle />}
+                        h="100%" // Ensures both alerts have the same height if one has more text
+                    >
+                        Until the tournament starts <b>at {startDateStr}</b>, you can only see your own entries.
+                    </Alert>
+
+                    <Alert
+                        title="Entries Lock In"
+                        color="blue"
+                        h="100%"
+                    >
+                        <Text fw={700} size="md" ta="center">
+                            {countdown.day > 0 && `${countdown.day} DAYS | `}
+                            {countdown.hours} HR | {countdown.minutes} MIN | {countdown.seconds} SEC
+                        </Text>
+                    </Alert>
+                </Group>
             }
 
             <Group justify="space-between" align="center">
