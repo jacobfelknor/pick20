@@ -145,7 +145,7 @@ function EntryList() {
                     </Alert>
 
                     <Alert
-                        title="Entries Lock In"
+                        title="Entries Lock In:"
                         color="blue"
                         h="100%"
                     >
