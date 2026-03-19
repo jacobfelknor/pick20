@@ -58,18 +58,12 @@ class EntryListView(generics.ListAPIView):
 
     def get_queryset(self):
         tournament_id = self.kwargs.get("tournament_id")
-        # TODO: add GET param to only return entries for a particular user
-        #       I should also add a mixin to protect this against
-        #       viewing other user's entries until a tournament is locked
-        qs = models.Entry.objects.all()
         tournament = models.Tournament.objects.get(pk=tournament_id)
-        if not tournament.is_locked:
-            # before tournament is locked, users can only view their own entries
-            qs = qs.filter(user=self.request.user)
+        only_my_entries = self.request.query_params.get("onlyMyEntries", "false")
 
-        # if not tournament.is_locked and not self.request.user.is_superuser:
-        #     # before tournament is locked, non-superusers can only view their own entries
-        #     qs = qs.filter(user=self.request.user)
+        qs = models.Entry.objects.all()
+        if not tournament.is_locked or only_my_entries.lower() == "true":
+            qs = qs.filter(user=self.request.user)
 
         # Optimization:
         # select_related('user') joins the user table in the initial SQL query

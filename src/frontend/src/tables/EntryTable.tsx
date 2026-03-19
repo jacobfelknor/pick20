@@ -10,12 +10,12 @@ import { IconSearch } from "@tabler/icons-react";
 import { useLocalStorage } from "@mantine/hooks";
 
 
-export default function EntryTable({ tournament, tournamentDetail }: { tournament: string, tournamentDetail: any }) {
+export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries }: { tournament: string, tournamentDetail: any, onlyMyEntries: boolean }) {
     const navigate = useNavigate();
 
     const { data: entries, isLoading } = useQuery({
-        queryKey: ['entries', tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/entries/`).then(res => res.data),
+        queryKey: ['entries', tournament, onlyMyEntries],
+        queryFn: () => api.get(`/api/tournament/${tournament}/entries/`, { params: { onlyMyEntries: onlyMyEntries } }).then(res => res.data),
         enabled: !!tournament,
     });
 

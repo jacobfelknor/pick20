@@ -1,4 +1,4 @@
-import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text, Button } from "@mantine/core";
+import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text, Button, Switch } from "@mantine/core";
 import { useOutletContext } from "react-router-dom";
 import EntryTable from "../tables/EntryTable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,13 +6,14 @@ import api from "../api";
 import dayjs from 'dayjs';
 import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import { EntryFormModal } from "../forms/EntryFormModal";
 import { useClockCountDown } from '@gfazioli/mantine-clock';
 
 function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
+    const [onlyMyEntries, setOnlyMyEntries] = useLocalStorage({ key: 'only-my-entries', defaultValue: false });
     const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
     const queryClient = useQueryClient();
 
@@ -25,7 +26,7 @@ function EntryList() {
     const closeEntryCreateModalAndReload = () => {
         closeEntryCreateModal();
         // query from EntryTable
-        queryClient.invalidateQueries({ queryKey: ['entries', tournament] });
+        queryClient.invalidateQueries({ queryKey: ['entries', tournament, onlyMyEntries] });
         // query from PicksTable
         // queryClient.invalidateQueries({ queryKey: ['entryDetail', tournament] });
     }
@@ -150,7 +151,7 @@ function EntryList() {
                         h="100%"
                     >
                         <Text fw={700} size="md" ta="center">
-                            {countdown.day > 0 && `${countdown.day} DAYS | `}
+                            {countdown.day > 0 && `${countdown.day} D | `}
                             {countdown.hours} HR | {countdown.minutes} MIN | {countdown.seconds} SEC
                         </Text>
                     </Alert>
@@ -168,8 +169,15 @@ function EntryList() {
                         Create Entry
                     </Button>
                 )}
+                {tournamentDetail?.is_locked && (
+                    <Switch
+                        label="Only Show My Entries"
+                        checked={onlyMyEntries}
+                        onChange={(e) => setOnlyMyEntries(e.currentTarget.checked)}
+                    />
+                )}
             </Group>
-            <EntryTable tournament={tournament} tournamentDetail={tournamentDetail} />
+            <EntryTable tournament={tournament} tournamentDetail={tournamentDetail} onlyMyEntries={tournamentDetail?.is_locked ? onlyMyEntries : true} />
 
             <EntryFormModal
                 opened={entryCreateOpened}

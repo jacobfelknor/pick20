@@ -11,6 +11,7 @@ export const logOutUser = () => {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
   localStorage.removeItem("selected-tournament"); // always default to newest tournament on new login
+  localStorage.removeItem("only-my-entries"); // always default to show all entries
 }
 
 if (import.meta.env.DEV) {
