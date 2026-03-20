@@ -57,7 +57,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     // go back to page 1 if changing filters
     useEffect(() => {
         setPage(1);
-    }, [onlyMyEntries, selectedUsers])
+    }, [onlyMyEntries, selectedUsers, pageSize])
 
     return (
         <DataTable

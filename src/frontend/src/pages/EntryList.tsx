@@ -171,7 +171,7 @@ function EntryList() {
                 )}
                 {tournamentDetail?.is_locked && (
                     <Switch
-                        label="Only Show My Entries"
+                        label="Only My Entries"
                         checked={onlyMyEntries}
                         onChange={(e) => setOnlyMyEntries(e.currentTarget.checked)}
                     />

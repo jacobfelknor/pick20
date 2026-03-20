@@ -70,7 +70,7 @@ export function AppLayout() {
       header={{ height: 60 }}
       navbar={{
         width: 300,
-        breakpoint: 'sm',
+        breakpoint: 'md',
         collapsed: { mobile: !burgerOpened },
       }}
       padding="md"
@@ -78,14 +78,14 @@ export function AppLayout() {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group gap="xs" wrap="nowrap">
-            <Burger opened={burgerOpened} onClick={burgerToggle} hiddenFrom="sm" size="sm" />
+            <Burger opened={burgerOpened} onClick={burgerToggle} hiddenFrom="md" size="sm" />
             <Image
               src="/favicon.png" // Replace with your actual image path or URL
               alt="Pick20 Logo"
               h={30}         // Adjust height to match your title size
               w="auto"
             />
-            <Title order={3} visibleFrom="xs">Felknor's Pick20</Title>
+            <Title order={3} visibleFrom="md">Felknor's Pick20</Title>
           </Group>
           <NativeSelect
             value={tournament}
@@ -96,7 +96,7 @@ export function AppLayout() {
             w={200}
           />
           {/* Logout button moved to Navbar on mobile, visible only on Desktop header */}
-          <Button variant="subtle" color="red" onClick={handleLogout} visibleFrom="sm" size="sm">
+          <Button variant="subtle" color="red" onClick={handleLogout} visibleFrom="md" size="sm">
             Logout
           </Button>
         </Group>
@@ -105,7 +105,7 @@ export function AppLayout() {
       <AppShell.Navbar p="md">
         <AppShell.Section grow>
           {/* Mobile-only title at the top of the drawer */}
-          <Title order={4} hiddenFrom="sm" mb='md'>Felknor's Pick20</Title>
+          <Title order={4} hiddenFrom="md" mb='md'>Felknor's Pick20</Title>
           <Text size="xs" fw={700} c="dimmed" mb="xs" style={{ textTransform: 'uppercase' }}>
             Navigation
           </Text>
@@ -133,7 +133,7 @@ export function AppLayout() {
         </AppShell.Section>
 
         {/* Mobile-only Logout at the bottom of the drawer */}
-        <AppShell.Section hiddenFrom="sm">
+        <AppShell.Section hiddenFrom="md">
           <Button
             variant="light"
             color="red"
