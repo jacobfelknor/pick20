@@ -35,6 +35,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useLocalStorage({ key: 'entries-page-size', defaultValue: PAGE_SIZES[0] });
     const [records, setRecords] = useState(allRecords.slice(0, pageSize));
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
     useEffect(() => {
         const from = (page - 1) * pageSize;
@@ -47,8 +48,6 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
         return [...users];
     }, [allRecords]);
 
-    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-
     useEffect(() => {
         setRecords(
             allRecords.filter(({ user_detail }) => {
@@ -57,6 +56,11 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
             })
         );
     }, [selectedUsers]);
+
+    // go back to page 1 if changing filters
+    useEffect(() => {
+        setPage(1);
+    }, [onlyMyEntries, selectedUsers])
 
     return (
         <DataTable
