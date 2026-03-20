@@ -37,7 +37,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const usersWithEntries = useMemo(() => {
         const users = new Set(allRecords.map((e: any) => e.user_detail.full_name));
-        return [...users];
+        return sortBy([...users]);
     }, [allRecords]);
 
     const filteredRecords = useMemo(() => {
@@ -58,6 +58,11 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     useEffect(() => {
         setPage(1);
     }, [onlyMyEntries, selectedUsers, pageSize])
+
+    // clear filtered users when switching on/off onlyMyEntries
+    useEffect(() => {
+        setSelectedUsers([]);
+    }, [onlyMyEntries])
 
     return (
         <DataTable
