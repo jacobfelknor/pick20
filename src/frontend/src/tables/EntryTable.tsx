@@ -34,28 +34,25 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     const PAGE_SIZES = [15, 25, 50, 100];
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useLocalStorage({ key: 'entries-page-size', defaultValue: PAGE_SIZES[0] });
-    const [records, setRecords] = useState(allRecords.slice(0, pageSize));
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-
-    useEffect(() => {
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize;
-        setRecords(allRecords.slice(from, to));
-    }, [page, pageSize, allRecords]);
-
     const usersWithEntries = useMemo(() => {
         const users = new Set(allRecords.map((e: any) => e.user_detail.full_name));
         return [...users];
     }, [allRecords]);
 
-    useEffect(() => {
-        setRecords(
-            allRecords.filter(({ user_detail }) => {
-                if (selectedUsers.length && !selectedUsers.some((d) => d === user_detail.full_name)) return false;
-                return true;
-            })
+    const filteredRecords = useMemo(() => {
+        if (!selectedUsers.length) return allRecords;
+        return allRecords.filter(({ user_detail }) =>
+            selectedUsers.includes(user_detail.full_name)
         );
-    }, [selectedUsers]);
+    }, [allRecords, selectedUsers]);
+
+    // Then, slice that filtered data for pagination
+    const records = useMemo(() => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+        return filteredRecords.slice(from, to);
+    }, [page, pageSize, filteredRecords]);
 
     // go back to page 1 if changing filters
     useEffect(() => {
@@ -110,7 +107,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
             }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
-            totalRecords={allRecords.length}
+            totalRecords={filteredRecords.length}
             recordsPerPage={pageSize}
             page={page}
             onPageChange={(p) => setPage(p)}
