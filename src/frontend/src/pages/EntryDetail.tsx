@@ -72,7 +72,7 @@ const EntryDetail = () => {
         });
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div>
             {/* 1. The Back Button */}
             <Button
                 leftSection={<IconArrowLeft size={14} />}
