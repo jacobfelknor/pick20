@@ -95,7 +95,7 @@ function EntryList() {
                                     </div>
                                 </Group>
                             </Grid.Col> */}
-                            <Grid.Col span={{ base: 12, sm: 3 }}>
+                            <Grid.Col span={{ base: 12, sm: 4 }}>
                                 <Group align="center" wrap="nowrap">
                                     <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                         <IconUsers size={24} />
@@ -106,7 +106,7 @@ function EntryList() {
                                     </div>
                                 </Group>
                             </Grid.Col>
-                            <Grid.Col span={{ base: 12, sm: 3 }}>
+                            <Grid.Col span={{ base: 12, sm: 4 }}>
                                 <Group align="center" wrap="nowrap">
                                     <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                         <IconCircleCheck size={24} />
@@ -117,7 +117,7 @@ function EntryList() {
                                     </div>
                                 </Group>
                             </Grid.Col>
-                            <Grid.Col span={{ base: 12, sm: 3 }}>
+                            <Grid.Col span={{ base: 12, sm: 4 }}>
                                 <Group align="center" wrap="nowrap">
                                     <ThemeIcon variant="light" size="xl" radius="md" color="green">
                                         <IconCircleCheck size={24} />

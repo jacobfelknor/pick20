@@ -117,7 +117,7 @@ const EntryDetail = () => {
 
                     {/* Stats Grid */}
                     <Grid>
-                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                        <Grid.Col span={{ base: 12, sm: 3 }}>
                             <Group align="center" wrap="nowrap">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="orange">
                                     <IconTournament size={24} />
@@ -128,7 +128,7 @@ const EntryDetail = () => {
                                 </div>
                             </Group>
                         </Grid.Col>
-                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                        <Grid.Col span={{ base: 12, sm: 3 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                     <IconChartBar size={24} />
@@ -140,7 +140,7 @@ const EntryDetail = () => {
                             </Group>
                         </Grid.Col>
 
-                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                        <Grid.Col span={{ base: 12, sm: 3 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="teal">
                                     <IconCalculator size={24} />
@@ -152,7 +152,7 @@ const EntryDetail = () => {
                             </Group>
                         </Grid.Col>
 
-                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                        <Grid.Col span={{ base: 12, sm: 3 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="blue">
                                     <IconTrophy size={24} />
@@ -163,7 +163,7 @@ const EntryDetail = () => {
                                 </div>
                             </Group>
                         </Grid.Col>
-                        <Grid.Col span={{ base: 12, sm: 2.4 }}>
+                        {/* <Grid.Col span={{ base: 12, sm: 2.4 }}>
                             <Group align="center">
                                 <ThemeIcon variant="light" size="xl" radius="md" color="teal">
                                     <IconTrophy size={24} />
@@ -173,7 +173,7 @@ const EntryDetail = () => {
                                     <Text size="xl" fw={700}>#{entryDetail.max_potential_rank}</Text>
                                 </div>
                             </Group>
-                        </Grid.Col>
+                        </Grid.Col> */}
                     </Grid>
                 </Stack>
             </Card>}
