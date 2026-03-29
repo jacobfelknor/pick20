@@ -5,7 +5,7 @@ from django.utils import timezone
 from .models import Entry, Tournament, TournamentTeam
 
 
-def calculate_optimistic_gain(picks, current_round):
+def calculate_optimistic_gain(picks, current_round, total_tournament_wins):
     """
     Calculates max potential gain by assigning available wins per round
     to the highest-value teams first, taking into account how many rounds are remaining
@@ -21,25 +21,30 @@ def calculate_optimistic_gain(picks, current_round):
 
     total_potential_gain = 0
 
-    # 3. Iterate through remaining rounds only
-    # If we are in Round 3, we check slots for Rounds 3, 4, 5, and 6
     for r in range(current_round, TournamentTeam.MAX_WINS + 1):
-        # Calculate available wins in this round: R1=32, R2=16, R3=8, R4=4, R5=2, R6(Final)=1
-        # Formula: 2^(6 - r)
-        wins_available = 2 ** (TournamentTeam.MAX_WINS - r)
-        wins_awarded = 0
+        # Calculate global slots remaining for this round
+        # How many games have ALREADY finished in this round across the whole tourney?
+        if r == current_round:
+            # If R1, total_tournament_wins might be 10. Max is 32. Global left = 22.
+            # If R2, we need to subtract the 32 wins from R1 first.
+            total_wins_prior_to_this_round = sum(2 ** (TournamentTeam.MAX_WINS - i) for i in range(1, r))
+            wins_already_finished_in_round = max(total_tournament_wins - total_wins_prior_to_this_round, 0)
+            wins_to_complete_this_round = 2 ** (TournamentTeam.MAX_WINS - r)
+            wins_remaining_in_this_round = wins_to_complete_this_round - wins_already_finished_in_round
+        else:
+            # Future rounds haven't started, so all slots are open
+            wins_remaining_in_this_round = 2 ** (TournamentTeam.MAX_WINS - r)
 
+        wins_awarded = 0
         for team in eligible_teams:
-            # Do we have any more wins left to award?
-            if wins_awarded < wins_available:
-                if team.wins >= r:
-                    # this team already has a win for this round, occupying a win for this round
-                    # but can't further contribute any gain for this round
-                    wins_awarded += 1
-                else:
-                    # award this team a win in our potential gain
+            if wins_awarded < wins_remaining_in_this_round:
+                # Only award points if the team hasn't reached this round yet
+                if team.wins < r:
                     total_potential_gain += team.points_per_win
                     wins_awarded += 1
+                # Note: We don't increment wins_awarded if team.wins >= r
+                # because those wins are already accounted for in total_tournament_wins
+                # and thus already subtracted from global_slots_remaining
 
     return total_potential_gain
 
@@ -91,6 +96,7 @@ def update_tournament_scores(tournament: Tournament | int, set_standings_last_up
 
     # calculate this once outside the loop to avoid N queries
     current_round = tournament.current_round
+    total_tournament_wins = tournament.total_wins
 
     # 3. Prepare for Bulk Update
     updated_entries = []
@@ -99,7 +105,7 @@ def update_tournament_scores(tournament: Tournament | int, set_standings_last_up
 
         # Calculate the capped potential gain
         # Use .all() to hit the prefetched cache
-        calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), current_round)
+        calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), current_round, total_tournament_wins)
         entry.potential_score = entry.score + (calculated_potential_gain or 0)
         entry.current_rank = entry.temp_current_rank
         entry.still_alive = entry.potential_score >= max_current_score

@@ -61,19 +61,22 @@ class Tournament(models.Model):
         return self.teams.filter(is_eliminated=False).count()
 
     @property
+    def total_wins(self):
+        return self.teams.aggregate(total=models.Sum("wins"))["total"] or 0
+
+    @property
     def current_round(self):
-        total_wins = self.teams.aggregate(total=models.Sum("wins"))["total"] or 0
-        if total_wins < 32:
+        if self.total_wins < 32:
             return 1
-        elif total_wins < 48:
+        elif self.total_wins < 48:
             return 2
-        elif total_wins < 56:
+        elif self.total_wins < 56:
             return 3
-        elif total_wins < 60:
+        elif self.total_wins < 60:
             return 4
-        elif total_wins < 62:
+        elif self.total_wins < 62:
             return 5
-        elif total_wins < 63:
+        elif self.total_wins < 63:
             return 6
         else:
             # tournament complete...
