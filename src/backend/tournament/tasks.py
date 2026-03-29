@@ -85,6 +85,9 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
     # Max Potential Rank = How many people CURRENTLY have a score higher than your POTENTIAL score?
     all_current_scores = sorted([e.calculated_points for e in entries_ranked], reverse=True)
 
+    # calculate this once outside the loop to avoid N queries
+    current_round = tournament.current_round
+
     # 3. Prepare for Bulk Update
     updated_entries = []
     for entry in entries_ranked:
@@ -92,7 +95,7 @@ def update_tournament_scores(tournament: Tournament, set_standings_last_updated:
 
         # Calculate the capped potential gain
         # Use .all() to hit the prefetched cache
-        calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), tournament.current_round)
+        calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), current_round)
         entry.potential_score = entry.score + (calculated_potential_gain or 0)
         entry.current_rank = entry.temp_current_rank
         entry.still_alive = entry.potential_score >= max_current_score
