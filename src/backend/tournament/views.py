@@ -5,7 +5,7 @@ from django.db.models import Count
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
-from .permissions import IsOwnerAdminOrTournamentLocked
+from .permissions import IsOwnerOrTournamentLocked
 from .tasks import update_tournament_scores
 
 
@@ -72,7 +72,7 @@ class EntryListView(generics.ListAPIView):
 
 class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.EntrySerializer
-    permission_classes = [IsOwnerAdminOrTournamentLocked]
+    permission_classes = [IsOwnerOrTournamentLocked]
     lookup_field = None  # We are handling lookup manually via kwargs
 
     def get_queryset(self):
@@ -110,7 +110,7 @@ class EntryCreateView(generics.CreateAPIView):
 
     queryset = models.Entry.objects.all()
     serializer_class = serializers.EntrySerializer
-    permission_classes = [IsOwnerAdminOrTournamentLocked]  # Reusing your existing logic
+    permission_classes = [IsOwnerOrTournamentLocked]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

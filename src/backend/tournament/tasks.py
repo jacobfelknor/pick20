@@ -44,13 +44,17 @@ def calculate_optimistic_gain(picks, current_round):
     return total_potential_gain
 
 
-def update_tournament_scores(tournament: Tournament, set_standings_last_updated: bool = False):
+def update_tournament_scores(tournament: Tournament | int, set_standings_last_updated: bool = False):
     """
     Recalculates and saves the current_score for all entries
     within a specific tournament.
 
     TODO: generalize "rules" so we don't repeat them here and in models.py
     """
+
+    if isinstance(tournament, int):
+        tournament = Tournament.objects.get(pk=tournament)
+
     # 1. Annotate scores and potential scores first
     # We use a subquery/cte approach conceptually by chaining annotations
     base_queryset = (
