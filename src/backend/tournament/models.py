@@ -3,6 +3,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
+SEED_POINT_BANDS = (
+    ((13, 16), 4),
+    ((9, 12), 3),
+    ((5, 8), 2),
+    ((1, 4), 1),
+)
+
 
 class School(models.Model):
     """
@@ -60,27 +67,26 @@ class Tournament(models.Model):
     def teams_remaining(self):
         return self.teams.filter(is_eliminated=False).count()
 
+    ROUND_WINS_THRESHOLDS = (
+        (32, 1),
+        (48, 2),
+        (56, 3),
+        (60, 4),
+        (62, 5),
+        (63, 6),
+    )
+
     @property
     def total_wins(self):
         return self.teams.aggregate(total=models.Sum("wins"))["total"] or 0
 
     @property
     def current_round(self):
-        if self.total_wins < 32:
-            return 1
-        elif self.total_wins < 48:
-            return 2
-        elif self.total_wins < 56:
-            return 3
-        elif self.total_wins < 60:
-            return 4
-        elif self.total_wins < 62:
-            return 5
-        elif self.total_wins < 63:
-            return 6
-        else:
-            # tournament complete...
-            return 7
+        total = self.total_wins
+        for limit, round_num in self.ROUND_WINS_THRESHOLDS:
+            if total < limit:
+                return round_num
+        return 7
 
 
 class TournamentTeam(models.Model):
@@ -90,11 +96,11 @@ class TournamentTeam(models.Model):
     """
 
     class Meta:
-        unique_together = [
+        unique_together = (
             ("tournament", "school"),
             ("tournament", "seed", "region"),
-        ]
-        ordering = ["region", "seed"]
+        )
+        ordering = ("region", "seed")
 
     MAX_WINS = 6  # assumes a 64 team field
 
@@ -128,6 +134,24 @@ class TournamentTeam(models.Model):
     def __str__(self):
         return f"{self.name_display} ({self.seed}) - {self.tournament.year}"
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_wins = None
+        old_is_eliminated = False
+        if not is_new:
+            try:
+                old_instance = TournamentTeam.objects.get(pk=self.pk)
+                old_wins = old_instance.wins
+                old_is_eliminated = old_instance.is_eliminated
+            except TournamentTeam.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if is_new or old_wins != self.wins or old_is_eliminated != self.is_eliminated:
+            from .tasks import update_tournament_scores
+            update_tournament_scores(self.tournament_id, set_standings_last_updated=True)
+
     @property
     def name_display(self):
         name_display = self.school.name
@@ -140,14 +164,9 @@ class TournamentTeam(models.Model):
         """
         Calculates value based on the rules provided.
         """
-        if 1 <= self.seed <= 4:
-            return 1
-        elif 5 <= self.seed <= 8:
-            return 2
-        elif 9 <= self.seed <= 12:
-            return 3
-        elif 13 <= self.seed <= 16:
-            return 4
+        for (low, high), points in SEED_POINT_BANDS:
+            if low <= self.seed <= high:
+                return points
         return 0
 
     @property

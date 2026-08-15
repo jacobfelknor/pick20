@@ -1,1 +1,220 @@
-# Create your tests here.
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.utils import timezone
+from rest_framework import serializers
+
+from .models import Entry, School, Tournament, TournamentTeam
+from .serializers import EntrySerializer
+from .tasks import calculate_optimistic_gain, update_tournament_scores
+
+User = get_user_model()
+
+
+class TournamentTasksTests(TestCase):
+    def setUp(self):
+        # Create a user
+        self.user = User.objects.create_user(username="testuser", password="password")
+
+        # Create tournament
+        self.tournament = Tournament.objects.create(
+            year=2024,
+            start_date=timezone.now() + timezone.timedelta(days=1),
+        )
+
+        # Create schools
+        self.schools = []
+        for i in range(1, 25):
+            school = School.objects.create(name=f"School {i}", abbrev=f"SCH{i}")
+            self.schools.append(school)
+
+        # Create tournament teams
+        self.teams = []
+        regions = [TournamentTeam.Region.EAST, TournamentTeam.Region.WEST]
+        for idx, school in enumerate(self.schools):
+            # Assign seeds and regions
+            seed = (idx % 16) + 1
+            region = regions[idx // 16] if idx // 16 < len(regions) else TournamentTeam.Region.EAST
+            team = TournamentTeam.objects.create(
+                tournament=self.tournament,
+                school=school,
+                seed=seed,
+                region=region,
+                wins=0,
+                is_eliminated=False,
+            )
+            self.teams.append(team)
+
+    def test_calculate_optimistic_gain_basic(self):
+        # Select some teams for the pick list
+        picks = self.teams[:5]  # 5 teams
+
+        # If current round is 1 and 0 wins have occurred in the tournament
+        # Each team has 0 wins.
+        # They should be able to gain wins for remaining rounds.
+        gain = calculate_optimistic_gain(picks, current_round=1, total_tournament_wins=0)
+        self.assertGreater(gain, 0)
+
+    def test_calculate_optimistic_gain_with_eliminated_team(self):
+        picks = self.teams[:5]
+        # Mark one team as eliminated
+        picks[0].is_eliminated = True
+        picks[0].save()
+
+        # Gain should be calculated without the eliminated team
+        gain_with_eliminated = calculate_optimistic_gain(picks, current_round=1, total_tournament_wins=0)
+        
+        active_picks = picks[1:]
+        gain_without_eliminated = calculate_optimistic_gain(active_picks, current_round=1, total_tournament_wins=0)
+        
+        self.assertEqual(gain_with_eliminated, gain_without_eliminated)
+
+    def test_update_tournament_scores_empty_picks(self):
+        # Create an entry with no picks
+        entry = Entry.objects.create(
+            name="Empty Entry",
+            user=self.user,
+            tournament=self.tournament,
+        )
+
+        # Running update_tournament_scores should NOT crash on empty picks
+        try:
+            update_tournament_scores(self.tournament)
+        except Exception as e:
+            self.fail(f"update_tournament_scores raised an exception on empty picks: {e}")
+
+        # Fetch updated entry
+        entry.refresh_from_db()
+        self.assertEqual(entry.score, 0)
+        self.assertEqual(entry.potential_score, 0)
+        self.assertEqual(entry.current_rank, 1)
+
+
+class EntrySerializerTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.tournament = Tournament.objects.create(
+            year=2024,
+            start_date=timezone.now() + timezone.timedelta(days=1),
+        )
+        self.other_tournament = Tournament.objects.create(
+            year=2023,
+            start_date=timezone.now() - timezone.timedelta(days=10),
+        )
+
+        # Create schools and teams for both tournaments
+        self.school = School.objects.create(name="School A", abbrev="SCHA")
+        self.team = TournamentTeam.objects.create(
+            tournament=self.tournament,
+            school=self.school,
+            seed=1,
+            region=TournamentTeam.Region.EAST,
+        )
+        self.other_team = TournamentTeam.objects.create(
+            tournament=self.other_tournament,
+            school=self.school,
+            seed=1,
+            region=TournamentTeam.Region.EAST,
+        )
+
+    def test_picks_limit_validation(self):
+        # Create 21 teams
+        teams_21 = []
+        regions = [
+            TournamentTeam.Region.EAST,
+            TournamentTeam.Region.WEST,
+            TournamentTeam.Region.SOUTH,
+            TournamentTeam.Region.MIDWEST,
+        ]
+        for i in range(21):
+            school = School.objects.create(name=f"School {i}", abbrev=f"SCH{i}")
+            # Assign unique seed and region to satisfy unique_together constraint
+            seed = (i % 15) + 2  # use 2 to 16 to avoid conflict with seed=1, region=EAST from setUp
+            region = regions[i // 15]
+            team = TournamentTeam.objects.create(
+                tournament=self.tournament,
+                school=school,
+                seed=seed,
+                region=region,
+            )
+            teams_21.append(team)
+
+        # Try to validate serializer with 21 picks
+        data = {
+            "name": "Over Limit Entry",
+            "tournament": self.tournament.id,
+            "picks": [t.id for t in teams_21],
+        }
+
+        class DummyRequest:
+            def __init__(self, user):
+                self.user = user
+
+        serializer = EntrySerializer(data=data, context={"request": DummyRequest(self.user)})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("picks", serializer.errors)
+
+    def test_picks_tournament_validation(self):
+        # Try to validate with team from other tournament
+        data = {
+            "name": "Invalid Tournament Pick Entry",
+            "tournament": self.tournament.id,
+            "picks": [self.other_team.id],
+        }
+
+        class DummyRequest:
+            def __init__(self, user):
+                self.user = user
+
+        serializer = EntrySerializer(data=data, context={"request": DummyRequest(self.user)})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("picks", serializer.errors)
+
+
+class TournamentAutomaticScoresTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.tournament = Tournament.objects.create(
+            year=2024,
+            start_date=timezone.now() + timezone.timedelta(days=1),
+        )
+        self.school = School.objects.create(name="School A", abbrev="SCHA")
+        # seed 15 => 4 points per win based on SEED_POINT_BANDS
+        self.team = TournamentTeam.objects.create(
+            tournament=self.tournament,
+            school=self.school,
+            seed=15,
+            region=TournamentTeam.Region.EAST,
+            wins=0,
+            is_eliminated=False,
+        )
+        self.entry = Entry.objects.create(
+            name="Test Entry",
+            user=self.user,
+            tournament=self.tournament,
+        )
+        self.entry.picks.add(self.team)
+
+    def test_automatic_recalculation_on_team_save(self):
+        # Update baseline
+        update_tournament_scores(self.tournament)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.score, 0)
+        self.assertEqual(self.entry.potential_score, 24)
+
+        # Update team wins - triggers automatic recalculation via custom save()
+        self.team.wins = 2
+        self.team.save()
+
+        self.entry.refresh_from_db()
+        # 2 wins * 4 points = 8 points
+        self.assertEqual(self.entry.score, 8)
+        self.assertEqual(self.entry.potential_score, 24)
+
+        # Eliminate team
+        self.team.is_eliminated = True
+        self.team.save()
+
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.score, 8)
+        self.assertEqual(self.entry.potential_score, 8)
+

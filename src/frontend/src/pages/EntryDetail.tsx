@@ -1,9 +1,9 @@
-import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title, Switch } from "@mantine/core";
 import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconTournament, IconTrash, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
 import api from "../api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EntryFormModal } from "../forms/EntryFormModal";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from '@mantine/modals';
@@ -24,6 +24,33 @@ const EntryDetail = () => {
         queryKey: ['entryDetail', id],
         queryFn: () => api.get(`/api/entries/${id}/`).then(res => res.data),
         enabled: !!id,
+    });
+
+    const { data: currentUser } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: () => api.get('/api/auth/user/').then(res => res.data),
+    });
+
+    const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
+
+    const togglePaidMutation = useMutation({
+        mutationFn: () =>
+            api.patch(`/api/entries/${id}/`, { paid: !entryDetail?.paid }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['entryDetail', id] });
+            notifications.show({
+                title: 'Payment Status Updated',
+                message: 'Successfully updated the entry payment status.',
+                color: 'green',
+            });
+        },
+        onError: () => {
+            notifications.show({
+                title: 'Error',
+                message: 'Failed to update payment status.',
+                color: 'red',
+            });
+        }
     });
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
@@ -103,14 +130,36 @@ const EntryDetail = () => {
                             </Group>
                         </div>
 
-                        <Badge
-                            size="lg"
-                            variant="light"
-                            color={entryDetail.still_alive ? "green" : "red"}
-                            leftSection={entryDetail.still_alive ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
-                        >
-                            {entryDetail.still_alive ? "In the Running" : "Mathematically Eliminated"}
-                        </Badge>
+                        <Group gap="xs" align="center">
+                            {isAdmin ? (
+                                <Switch
+                                    label="Paid Status"
+                                    checked={entryDetail.paid}
+                                    onChange={() => togglePaidMutation.mutate()}
+                                    size="md"
+                                    onLabel="Paid"
+                                    offLabel="Unpaid"
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            ) : (
+                                <Badge
+                                    size="lg"
+                                    variant="light"
+                                    color={entryDetail.paid ? "green" : "red"}
+                                    leftSection={entryDetail.paid ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
+                                >
+                                    {entryDetail.paid ? "Paid" : "Payment Pending"}
+                                </Badge>
+                            )}
+                            <Badge
+                                size="lg"
+                                variant="light"
+                                color={entryDetail.still_alive ? "green" : "red"}
+                                leftSection={entryDetail.still_alive ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
+                            >
+                                {entryDetail.still_alive ? "In the Running" : "Mathematically Eliminated"}
+                            </Badge>
+                        </Group>
                     </Group>
 
                     <Divider />

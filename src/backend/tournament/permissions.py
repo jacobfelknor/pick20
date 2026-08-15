@@ -12,6 +12,10 @@ class IsOwnerOrTournamentLocked(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
 
+        # Admins get full access
+        if request.user and (request.user.is_staff or request.user.is_superuser):
+            return True
+
         # Owners get full access
         if obj.user == request.user:
             return True
@@ -22,6 +26,7 @@ class IsOwnerOrTournamentLocked(permissions.BasePermission):
             # grants permission if tournament is locked, i.e. after tournament starts
             if not obj.tournament.is_locked:
                 self.message = "You cannot view another user's entry until the tournament is locked!"
+                return False
             else:
                 return True
 

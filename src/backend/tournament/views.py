@@ -2,6 +2,7 @@
 
 from django.db import transaction
 from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
@@ -11,28 +12,28 @@ from .tasks import update_tournament_scores
 
 class TournamentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.TournamentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
     queryset = models.Tournament.objects.all()
 
 
 class TournamentListView(generics.ListAPIView):
     serializer_class = serializers.TournamentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ["year"]
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ("year",)
     queryset = models.Tournament.objects.all()
-    ordering = ["-year"]
+    ordering = ("-year",)
 
 
 class TournamentTeamListView(generics.ListAPIView):
     serializer_class = serializers.TournamentTeamSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ["seed"]
-    ordering = ["seed"]
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ("seed",)
+    ordering = ("seed",)
 
     def get_queryset(self):
         tournament_id = self.kwargs.get("tournament_id")
@@ -50,15 +51,15 @@ class TournamentTeamListView(generics.ListAPIView):
 
 class EntryListView(generics.ListAPIView):
     serializer_class = serializers.EntrySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ["score"]
-    ordering = ["score"]
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ("score", "potential_score")
+    ordering = ("-score", "-potential_score")
 
     def get_queryset(self):
         tournament_id = self.kwargs.get("tournament_id")
-        tournament = models.Tournament.objects.get(pk=tournament_id)
+        tournament = get_object_or_404(models.Tournament, pk=tournament_id)
         only_my_entries = self.request.query_params.get("onlyMyEntries", "false")
 
         qs = models.Entry.objects.all()
@@ -72,7 +73,7 @@ class EntryListView(generics.ListAPIView):
 
 class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.EntrySerializer
-    permission_classes = [IsOwnerOrTournamentLocked]
+    permission_classes = (IsOwnerOrTournamentLocked,)
     lookup_field = None  # We are handling lookup manually via kwargs
 
     def get_queryset(self):
@@ -100,7 +101,7 @@ class EntryDetailView(generics.RetrieveUpdateDestroyAPIView):
         # still bound by the 'is_locked' logic in the serializer.
         with transaction.atomic():
             serializer.save()
-            update_tournament_scores(serializer.data["tournament"])
+            update_tournament_scores(serializer.instance.tournament_id)
 
 
 class EntryCreateView(generics.CreateAPIView):
@@ -110,7 +111,7 @@ class EntryCreateView(generics.CreateAPIView):
 
     queryset = models.Entry.objects.all()
     serializer_class = serializers.EntrySerializer
-    permission_classes = [IsOwnerOrTournamentLocked]
+    permission_classes = (IsOwnerOrTournamentLocked,)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -124,4 +125,4 @@ class EntryCreateView(generics.CreateAPIView):
         with transaction.atomic():
             serializer.save(user=self.request.user)
             # run update task so this gets initial values
-            update_tournament_scores(serializer.data["tournament"])
+            update_tournament_scores(serializer.instance.tournament_id)
