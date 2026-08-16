@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.test import APITestCase
+from django.urls import reverse
 
 from .models import Entry, School, Tournament, TournamentTeam
 from .serializers import EntrySerializer
@@ -217,4 +219,69 @@ class TournamentAutomaticScoresTests(TestCase):
         self.entry.refresh_from_db()
         self.assertEqual(self.entry.score, 8)
         self.assertEqual(self.entry.potential_score, 8)
+
+
+class TournamentAPITests(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(username="admin", password="password", is_staff=True)
+        self.normal_user = User.objects.create_user(username="normal", password="password", is_staff=False)
+        self.tournament = Tournament.objects.create(
+            year=2024,
+            start_date=timezone.now() + timezone.timedelta(days=1),
+        )
+        self.school = School.objects.create(name="School A", abbrev="SCHA")
+        self.school_secondary = School.objects.create(name="School B", abbrev="SCHB")
+        self.team = TournamentTeam.objects.create(
+            tournament=self.tournament,
+            school=self.school,
+            seed=1,
+            region=TournamentTeam.Region.EAST,
+        )
+
+    def test_create_tournament_by_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-list")
+        data = {
+            "year": 2025,
+            "start_date": (timezone.now() + timezone.timedelta(days=10)).isoformat(),
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Tournament.objects.filter(year=2025).count(), 1)
+
+    def test_create_tournament_by_normal_user_denied(self):
+        self.client.force_authenticate(user=self.normal_user)
+        url = reverse("tournament-list")
+        data = {
+            "year": 2025,
+            "start_date": timezone.now().isoformat(),
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 403)
+
+    def test_create_team_by_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
+        data = {
+            "school": self.school_secondary.id,
+            "seed": 16,
+            "region": TournamentTeam.Region.WEST,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(TournamentTeam.objects.filter(tournament=self.tournament, seed=16).count(), 1)
+
+    def test_patch_team_by_admin(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
+        data = {
+            "wins": 3,
+            "is_eliminated": True,
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.team.refresh_from_db()
+        self.assertEqual(self.team.wins, 3)
+        self.assertTrue(self.team.is_eliminated)
+
 

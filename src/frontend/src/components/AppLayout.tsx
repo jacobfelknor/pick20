@@ -34,6 +34,11 @@ export function AppLayout() {
       }))
   });
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: () => api.get('/api/auth/user/').then(res => res.data),
+  });
+
   // Fallback: If no selection exists in local storage, select the first one from API
   useEffect(() => {
     if (!tournament && data && data.length > 0) {
@@ -130,6 +135,13 @@ export function AppLayout() {
             active={location.pathname === '/profile'}
             onClick={() => handleNavigate('/profile')}
           />
+          {userProfile && (userProfile.is_staff || userProfile.is_superuser) && (
+            <NavLink
+              label="Admin Dashboard"
+              active={location.pathname === '/admin/dashboard'}
+              onClick={() => handleNavigate('/admin/dashboard')}
+            />
+          )}
         </AppShell.Section>
 
         {/* Mobile-only Logout at the bottom of the drawer */}

@@ -1,6 +1,30 @@
 from rest_framework import permissions
 
 
+class IsAdminUser(permissions.BasePermission):
+    """
+    Permission to only allow admin users.
+    """
+    message = "Only administrators are allowed to perform this action."
+
+    def has_permission(self, request, view):
+        return bool(request.user and (request.user.is_staff or request.user.is_superuser))
+
+
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    Permission to allow:
+    - Anyone (who is authenticated) to read.
+    - Admins to write.
+    """
+    message = "Only administrators can perform write operations."
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return bool(request.user and request.user.is_authenticated)
+        return bool(request.user and (request.user.is_staff or request.user.is_superuser))
+
+
 class IsOwnerOrTournamentLocked(permissions.BasePermission):
     """
     Permission to allow:

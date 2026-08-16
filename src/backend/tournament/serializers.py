@@ -1,7 +1,13 @@
 from accounts.serializers import UserSerializer
 from rest_framework import serializers
 
-from .models import Entry, Tournament, TournamentTeam
+from .models import Entry, Tournament, TournamentTeam, School
+
+
+class SchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = School
+        fields = ("id", "name", "abbrev")
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -20,12 +26,18 @@ class TournamentSerializer(serializers.ModelSerializer):
             "participants_alive",
             "teams_remaining",
         )
-        read_only_fields = ("year", "start_date", "concluded", "is_locked")
+        read_only_fields = ("standings_last_updated_at",)
 
 
 class TournamentTeamSerializer(serializers.ModelSerializer):
     school_name = serializers.CharField(source="school.name", read_only=True)
-    num_entries_picked = serializers.IntegerField(source="entries_count", read_only=True)
+    school_secondary = serializers.PrimaryKeyRelatedField(
+        queryset=School.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    school_secondary_name = serializers.SerializerMethodField()
+    num_entries_picked = serializers.SerializerMethodField()
 
     class Meta:
         model = TournamentTeam
@@ -33,6 +45,8 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
             "id",
             "school",
             "school_name",
+            "school_secondary",
+            "school_secondary_name",
             "name_display",
             "seed",
             "region",
@@ -44,6 +58,16 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
             "optimistic_potential_points_remaining",
             "num_entries_picked",
         )
+
+    def get_school_secondary_name(self, obj):
+        if obj.school_secondary:
+            return obj.school_secondary.name
+        return None
+
+    def get_num_entries_picked(self, obj):
+        if hasattr(obj, "entries_count"):
+            return obj.entries_count
+        return obj.entry_set.count()
 
 
 class EntrySerializer(serializers.ModelSerializer):

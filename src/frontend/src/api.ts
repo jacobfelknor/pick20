@@ -26,6 +26,7 @@ interface RefreshResponse {
 // 2. Create the instance
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
+  timeout: 10000, // Timeout requests after 10 seconds (10000ms)
 });
 
 // 3. Request Interceptor

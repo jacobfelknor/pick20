@@ -6,20 +6,20 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
-from .permissions import IsOwnerOrTournamentLocked
+from .permissions import IsOwnerOrTournamentLocked, IsAdminUser, IsAdminOrReadOnly
 from .tasks import update_tournament_scores
 
 
 class TournamentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.TournamentSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdminOrReadOnly,)
 
     queryset = models.Tournament.objects.all()
 
 
-class TournamentListView(generics.ListAPIView):
+class TournamentListView(generics.ListCreateAPIView):
     serializer_class = serializers.TournamentSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdminOrReadOnly,)
 
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ("year",)
@@ -27,9 +27,9 @@ class TournamentListView(generics.ListAPIView):
     ordering = ("-year",)
 
 
-class TournamentTeamListView(generics.ListAPIView):
+class TournamentTeamListView(generics.ListCreateAPIView):
     serializer_class = serializers.TournamentTeamSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdminOrReadOnly,)
 
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ("seed",)
@@ -47,6 +47,17 @@ class TournamentTeamListView(generics.ListAPIView):
             .all()
         )
         return qs
+
+    def perform_create(self, serializer):
+        tournament_id = self.kwargs.get("tournament_id")
+        tournament = get_object_or_404(models.Tournament, pk=tournament_id)
+        serializer.save(tournament=tournament)
+
+
+class TournamentTeamUpdateView(generics.UpdateAPIView):
+    serializer_class = serializers.TournamentTeamSerializer
+    permission_classes = (IsAdminUser,)
+    queryset = models.TournamentTeam.objects.all()
 
 
 class EntryListView(generics.ListAPIView):
@@ -126,3 +137,9 @@ class EntryCreateView(generics.CreateAPIView):
             serializer.save(user=self.request.user)
             # run update task so this gets initial values
             update_tournament_scores(serializer.instance.tournament_id)
+
+
+class SchoolListView(generics.ListAPIView):
+    serializer_class = serializers.SchoolSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = models.School.objects.all().order_by("name")
