@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
-import { MultiSelect, Switch } from "@mantine/core";
+import { MultiSelect, Checkbox, Select } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useLocalStorage } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -33,11 +33,11 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
             api.patch(`/api/entries/${id}/`, { paid: !paid }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['entries', tournament, onlyMyEntries] });
-            notifications.show({
-                title: 'Payment Status Updated',
-                message: 'Successfully updated the entry payment status.',
-                color: 'green',
-            });
+            // notifications.show({
+            //     title: 'Payment Status Updated',
+            //     message: 'Successfully updated the entry payment status.',
+            //     color: 'green',
+            // });
         },
         onError: () => {
             notifications.show({
@@ -64,17 +64,25 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useLocalStorage({ key: 'entries-page-size', defaultValue: PAGE_SIZES[0] });
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [paidFilter, setPaidFilter] = useState<string>('all');
     const usersWithEntries = useMemo(() => {
         const users = new Set(allRecords.map((e: any) => e.user_detail.full_name));
         return sortBy([...users]);
     }, [allRecords]);
 
     const filteredRecords = useMemo(() => {
-        if (!selectedUsers.length) return allRecords;
-        return allRecords.filter(({ user_detail }) =>
-            selectedUsers.includes(user_detail.full_name)
-        );
-    }, [allRecords, selectedUsers]);
+        let data = allRecords;
+        if (selectedUsers.length > 0) {
+            data = data.filter(({ user_detail }) =>
+                selectedUsers.includes(user_detail.full_name)
+            );
+        }
+        if (paidFilter !== 'all') {
+            const isPaid = paidFilter === 'paid';
+            data = data.filter(({ paid }) => paid === isPaid);
+        }
+        return data;
+    }, [allRecords, selectedUsers, paidFilter]);
 
     // Then, slice that filtered data for pagination
     const records = useMemo(() => {
@@ -83,15 +91,22 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
         return filteredRecords.slice(from, to);
     }, [page, pageSize, filteredRecords]);
 
-    // go back to page 1 if changing filters
-    useEffect(() => {
-        setPage(1);
-    }, [onlyMyEntries, selectedUsers, pageSize])
+    const [prevOnlyMyEntries, setPrevOnlyMyEntries] = useState(onlyMyEntries);
+    const [prevSelectedUsers, setPrevSelectedUsers] = useState(selectedUsers);
+    const [prevPaidFilter, setPrevPaidFilter] = useState(paidFilter);
+    const [prevPageSize, setPrevPageSize] = useState(pageSize);
 
-    // clear filtered users when switching on/off onlyMyEntries
-    useEffect(() => {
+    if (onlyMyEntries !== prevOnlyMyEntries) {
+        setPrevOnlyMyEntries(onlyMyEntries);
         setSelectedUsers([]);
-    }, [onlyMyEntries])
+        setPaidFilter('all');
+        setPage(1);
+    } else if (selectedUsers !== prevSelectedUsers || paidFilter !== prevPaidFilter || pageSize !== prevPageSize) {
+        setPrevSelectedUsers(selectedUsers);
+        setPrevPaidFilter(paidFilter);
+        setPrevPageSize(pageSize);
+        setPage(1);
+    }
 
     const columns = useMemo(() => {
         const cols: any[] = [
@@ -131,21 +146,33 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
                 sortable: true,
                 render: ({ id, paid }: any) => (
                     <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', justifyContent: 'center' }}>
-                        <Switch
+                        <Checkbox
                             checked={paid}
                             onChange={() => togglePaidMutation.mutate({ id, paid })}
-                            size="sm"
-                            onLabel="ON"
-                            offLabel="OFF"
                             style={{ cursor: 'pointer' }}
                         />
                     </div>
-                )
+                ),
+                filter: (
+                    <Select
+                        label="Payment Status"
+                        description="Filter by payment status"
+                        data={[
+                            { value: 'all', label: 'All' },
+                            { value: 'paid', label: 'Paid' },
+                            { value: 'unpaid', label: 'Unpaid' },
+                        ]}
+                        value={paidFilter}
+                        onChange={(val) => setPaidFilter(val || 'all')}
+                        comboboxProps={{ withinPortal: false }}
+                    />
+                ),
+                filtering: paidFilter !== 'all',
             });
         }
 
         return cols;
-    }, [isAdmin, tournamentDetail, usersWithEntries, selectedUsers, togglePaidMutation]);
+    }, [isAdmin, tournamentDetail, usersWithEntries, selectedUsers, paidFilter, setPaidFilter, togglePaidMutation]);
 
     return (
         <DataTable
