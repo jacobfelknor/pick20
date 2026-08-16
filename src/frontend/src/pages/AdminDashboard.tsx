@@ -27,7 +27,6 @@ import {
     IconInfoCircle,
     IconPlus,
     IconMinus,
-    IconTrophy,
     IconChecks,
     IconUserCheck,
     IconTrash,
@@ -64,11 +63,6 @@ export default function AdminDashboard() {
 
     // Component States
     const [showEliminated, setShowEliminated] = useState(false);
-
-    // Create Tournament form state
-    const [newYear, setNewYear] = useState<number | "">(new Date().getFullYear());
-    const [newStartDate, setNewStartDate] = useState("");
-    const [createTournamentLoading, setCreateTournamentLoading] = useState(false);
 
     // Add Team form state
     const [addTeamSchool, setAddTeamSchool] = useState<string | null>(null);
@@ -233,42 +227,6 @@ export default function AdminDashboard() {
         });
     };
 
-    const handleCreateTournament = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newYear || !newStartDate) {
-            notifications.show({
-                title: "Validation Error",
-                message: "Please fill in all tournament fields.",
-                color: "yellow",
-            });
-            return;
-        }
-
-        setCreateTournamentLoading(true);
-        try {
-            const response = await api.post("/api/tournament/", {
-                year: Number(newYear),
-                start_date: new Date(newStartDate).toISOString(),
-            });
-            notifications.show({
-                title: "Success",
-                message: `${response.data.year} Tournament has been created!`,
-                color: "green",
-            });
-            queryClient.invalidateQueries({ queryKey: ["tournaments"] });
-            setNewYear(new Date().getFullYear() + 1);
-            setNewStartDate("");
-        } catch (err: any) {
-            notifications.show({
-                title: "Creation Failed",
-                message: JSON.stringify(err.response?.data) || "Could not create tournament.",
-                color: "red",
-            });
-        } finally {
-            setCreateTournamentLoading(false);
-        }
-    };
-
     const handleAddTeam = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!addTeamSchool || addTeamSeed === "" || !addTeamRegion) {
@@ -392,123 +350,94 @@ export default function AdminDashboard() {
             </Group>
 
             {/* SETUP PHASE SECTION */}
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-                {/* Create Tournament */}
-                <Paper withBorder p="md" radius="md" shadow="sm">
-                    <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <IconTrophy size={20} color="orange" /> Create Tournament
-                    </Title>
-                    <form onSubmit={handleCreateTournament}>
-                        <Stack gap="sm">
-                            <NumberInput
-                                label="Tournament Year"
-                                placeholder={new Date().getFullYear().toString()}
-                                value={newYear}
-                                onChange={(val) => setNewYear(val === "" ? "" : Number(val))}
-                                required
-                                min={1900}
-                                max={2100}
-                            />
-                            <TextInput
-                                label="Start Date & Time (Picks Lock)"
-                                placeholder="Select date and time"
-                                type="datetime-local"
-                                value={newStartDate}
-                                onChange={(e) => setNewStartDate(e.currentTarget.value)}
-                                required
-                            />
-                            <Button type="submit" loading={createTournamentLoading} mt="xs">
-                                Create Tournament
-                            </Button>
-                        </Stack>
-                    </form>
-                </Paper>
-
-                {/* Add Team to Selected Tournament */}
-                <Paper withBorder p="md" radius="md" shadow="sm">
-                    <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <IconPlus size={20} color="green" /> Add Team to {tournamentDetail?.year || "Selected"} Tournament
-                    </Title>
-                    {!tournament ? (
-                        <Alert color="blue" icon={<IconInfoCircle />}>
-                            Please select a tournament from the header dropdown first.
-                        </Alert>
-                    ) : (
-                        <form onSubmit={handleAddTeam}>
-                            <Stack gap="sm">
-                                <SimpleGrid cols={2}>
-                                    <Select
-                                        label="Primary School"
-                                        placeholder="Search schools"
-                                        data={schoolOptions}
-                                        value={addTeamSchool}
-                                        onChange={setAddTeamSchool}
-                                        searchable
-                                        required
-                                    />
-                                    <Select
-                                        label="Secondary School (First Four)"
-                                        placeholder="Optional"
-                                        data={schoolOptions}
-                                        value={addTeamSchoolSecondary}
-                                        onChange={setAddTeamSchoolSecondary}
-                                        searchable
-                                        clearable
-                                    />
-                                </SimpleGrid>
-
-                                <SimpleGrid cols={2}>
-                                    <NumberInput
-                                        label="Seed"
-                                        placeholder="Select seed (1-16)"
-                                        min={1}
-                                        max={16}
-                                        value={addTeamSeed}
-                                        onChange={(val) => setAddTeamSeed(val === "" ? "" : Number(val))}
-                                        required
-                                    />
-                                    <Select
-                                        label="Region"
-                                        placeholder="Select region"
-                                        data={regionOptions}
-                                        value={addTeamRegion}
-                                        onChange={setAddTeamRegion}
-                                        required
-                                    />
-                                </SimpleGrid>
-
-                                <Button type="submit" loading={addTeamLoading} color="green" mt="xs" disabled={!tournament}>
-                                    Add Team
-                                </Button>
-                            </Stack>
-                        </form>
-                    )}
-                </Paper>
-
-                {/* Edit Tournament Start Date */}
-                {tournamentDetail && !tournamentDetail.is_locked && (
+            {(!tournamentDetail || !tournamentDetail.is_locked) && (
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                    {/* Add Team to Selected Tournament */}
                     <Paper withBorder p="md" radius="md" shadow="sm">
                         <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <IconCalendar size={20} color="blue" /> Edit {tournamentDetail.year} Start Date
+                            <IconPlus size={20} color="green" /> Add Team to {tournamentDetail?.year || "Selected"} Tournament
                         </Title>
-                        <form onSubmit={handleEditStartDate}>
-                            <Stack gap="sm">
-                                <TextInput
-                                    label="Start Date & Time (Picks Lock)"
-                                    placeholder="Select date and time"
-                                    type="datetime-local"
-                                    value={editStartDate}
-                                    onChange={(e) => setEditStartDate(e.currentTarget.value)}
-                                    required
-                                />
-                                <Button type="submit" loading={editStartDateLoading} color="blue" mt="xs">
-                                    Update Start Date
-                                </Button>
-                            </Stack>
-                        </form>
+                        {!tournament ? (
+                            <Alert color="blue" icon={<IconInfoCircle />}>
+                                Please select a tournament from the header dropdown first.
+                            </Alert>
+                        ) : (
+                            <form onSubmit={handleAddTeam}>
+                                <Stack gap="sm">
+                                    <SimpleGrid cols={2}>
+                                        <Select
+                                            label="Primary School"
+                                            placeholder="Search schools"
+                                            data={schoolOptions}
+                                            value={addTeamSchool}
+                                            onChange={setAddTeamSchool}
+                                            searchable
+                                            required
+                                        />
+                                        <Select
+                                            label="Secondary School (First Four)"
+                                            placeholder="Optional"
+                                            data={schoolOptions}
+                                            value={addTeamSchoolSecondary}
+                                            onChange={setAddTeamSchoolSecondary}
+                                            searchable
+                                            clearable
+                                        />
+                                    </SimpleGrid>
+
+                                    <SimpleGrid cols={2}>
+                                        <NumberInput
+                                            label="Seed"
+                                            placeholder="Select seed (1-16)"
+                                            min={1}
+                                            max={16}
+                                            value={addTeamSeed}
+                                            onChange={(val) => setAddTeamSeed(val === "" ? "" : Number(val))}
+                                            required
+                                        />
+                                        <Select
+                                            label="Region"
+                                            placeholder="Select region"
+                                            data={regionOptions}
+                                            value={addTeamRegion}
+                                            onChange={setAddTeamRegion}
+                                            required
+                                        />
+                                    </SimpleGrid>
+
+                                    <Button type="submit" loading={addTeamLoading} color="green" mt="xs" disabled={!tournament}>
+                                        Add Team
+                                    </Button>
+                                </Stack>
+                            </form>
+                        )}
                     </Paper>
-                )}
-            </SimpleGrid>
+
+                    {/* Edit Tournament Start Date */}
+                    {tournamentDetail && !tournamentDetail.is_locked && (
+                        <Paper withBorder p="md" radius="md" shadow="sm">
+                            <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <IconCalendar size={20} color="blue" /> Edit {tournamentDetail.year} Start Date
+                            </Title>
+                            <form onSubmit={handleEditStartDate}>
+                                <Stack gap="sm">
+                                    <TextInput
+                                        label="Start Date & Time (Picks Lock)"
+                                        placeholder="Select date and time"
+                                        type="datetime-local"
+                                        value={editStartDate}
+                                        onChange={(e) => setEditStartDate(e.currentTarget.value)}
+                                        required
+                                    />
+                                    <Button type="submit" loading={editStartDateLoading} color="blue" mt="xs">
+                                        Update Start Date
+                                    </Button>
+                                </Stack>
+                            </form>
+                        </Paper>
+                    )}
+                </SimpleGrid>
+            )}
 
             {/* FIRST FOUR RESOLUTION SECTION */}
             {firstFourTeams.length > 0 && (

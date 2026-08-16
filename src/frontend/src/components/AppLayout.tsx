@@ -1,15 +1,63 @@
-import { AppShell, Burger, Group, NavLink, Title, Button, Text, NativeSelect, Image } from '@mantine/core';
+import { AppShell, Burger, Group, NavLink, Title, Button, Text, NativeSelect, Image, ActionIcon, Modal, TextInput, NumberInput, Stack } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
+import { IconPlus, IconTrophy } from '@tabler/icons-react';
 import api, { logOutUser } from '../api';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
+  const [createModalOpened, { open: openCreateModal, close: closeCreateModal }] = useDisclosure(false);
   const [tournament, setTournament] = useLocalStorage({ key: 'selected-tournament', defaultValue: "" })
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
+
+  const [newYear, setNewYear] = useState<number | "">(new Date().getFullYear());
+  const [newStartDate, setNewStartDate] = useState("");
+  const [createTournamentLoading, setCreateTournamentLoading] = useState(false);
+
+  const handleCreateTournament = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newYear || !newStartDate) {
+      notifications.show({
+        title: "Validation Error",
+        message: "Please fill in all tournament fields.",
+        color: "yellow",
+      });
+      return;
+    }
+
+    setCreateTournamentLoading(true);
+    try {
+      const response = await api.post("/api/tournament/", {
+        year: Number(newYear),
+        start_date: new Date(newStartDate).toISOString(),
+      });
+      notifications.show({
+        title: "Success",
+        message: `${response.data.year} Tournament has been created!`,
+        color: "green",
+      });
+      if (response.data && response.data.id) {
+        setTournament(response.data.id.toString());
+      }
+      queryClient.invalidateQueries({ queryKey: ["tournaments"] });
+      setNewYear(new Date().getFullYear() + 1);
+      setNewStartDate("");
+      closeCreateModal();
+    } catch (err: any) {
+      notifications.show({
+        title: "Creation Failed",
+        message: JSON.stringify(err.response?.data) || "Could not create tournament.",
+        color: "red",
+      });
+    } finally {
+      setCreateTournamentLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logOutUser();
@@ -92,14 +140,27 @@ export function AppLayout() {
             />
             <Title order={3} visibleFrom="md">Felknor's Pick20</Title>
           </Group>
-          <NativeSelect
-            value={tournament}
-            onChange={(event) => handleTournamentChange(event.currentTarget.value)}
-            // Ensure data is at least an empty array. Otherwise we get an error if data isn't yet fetched
-            data={data ?? []}
-            disabled={isLoading}
-            w={200}
-          />
+          <Group gap="xs" wrap="nowrap">
+            <NativeSelect
+              value={tournament}
+              onChange={(event) => handleTournamentChange(event.currentTarget.value)}
+              // Ensure data is at least an empty array. Otherwise we get an error if data isn't yet fetched
+              data={data ?? []}
+              disabled={isLoading}
+              w={200}
+            />
+            {userProfile && (userProfile.is_staff || userProfile.is_superuser) && (
+              <ActionIcon
+                variant="light"
+                color="blue"
+                size="lg"
+                onClick={openCreateModal}
+                title="Create New Tournament"
+              >
+                <IconPlus size={18} />
+              </ActionIcon>
+            )}
+          </Group>
           {/* Logout button moved to Navbar on mobile, visible only on Desktop header */}
           <Button variant="subtle" color="red" onClick={handleLogout} visibleFrom="md" size="sm">
             Logout
@@ -161,6 +222,43 @@ export function AppLayout() {
       <AppShell.Main>
         <Outlet context={{ tournament }} />
       </AppShell.Main>
+
+      <Modal
+        opened={createModalOpened}
+        onClose={closeCreateModal}
+        title={
+          <Group gap="xs">
+            <IconTrophy size={20} color="orange" />
+            <Text fw={700}>Create Tournament</Text>
+          </Group>
+        }
+        centered
+      >
+        <form onSubmit={handleCreateTournament}>
+          <Stack gap="sm">
+            <NumberInput
+              label="Tournament Year"
+              placeholder={new Date().getFullYear().toString()}
+              value={newYear}
+              onChange={(val) => setNewYear(val === "" ? "" : Number(val))}
+              required
+              min={1900}
+              max={2100}
+            />
+            <TextInput
+              label="Start Date & Time (Picks Lock)"
+              placeholder="Select date and time"
+              type="datetime-local"
+              value={newStartDate}
+              onChange={(e) => setNewStartDate(e.currentTarget.value)}
+              required
+            />
+            <Button type="submit" loading={createTournamentLoading} mt="xs" fullWidth>
+              Create Tournament
+            </Button>
+          </Stack>
+        </form>
+      </Modal>
     </AppShell>
   );
 }

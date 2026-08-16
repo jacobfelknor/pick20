@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.utils import timezone
-from rest_framework import serializers
-from rest_framework.test import APITestCase
 from django.urls import reverse
+from django.utils import timezone
+from rest_framework.test import APITestCase
 
 from .models import Entry, School, Tournament, TournamentTeam
 from .serializers import EntrySerializer
@@ -18,9 +17,10 @@ class TournamentTasksTests(TestCase):
         self.user = User.objects.create_user(username="testuser", password="password")
 
         # Create tournament
+        start_date = timezone.now() + timezone.timedelta(days=1)
         self.tournament = Tournament.objects.create(
-            year=2024,
-            start_date=timezone.now() + timezone.timedelta(days=1),
+            year=start_date.year,
+            start_date=start_date,
         )
 
         # Create schools
@@ -64,10 +64,10 @@ class TournamentTasksTests(TestCase):
 
         # Gain should be calculated without the eliminated team
         gain_with_eliminated = calculate_optimistic_gain(picks, current_round=1, total_tournament_wins=0)
-        
+
         active_picks = picks[1:]
         gain_without_eliminated = calculate_optimistic_gain(active_picks, current_round=1, total_tournament_wins=0)
-        
+
         self.assertEqual(gain_with_eliminated, gain_without_eliminated)
 
     def test_update_tournament_scores_empty_picks(self):
@@ -94,13 +94,14 @@ class TournamentTasksTests(TestCase):
 class EntrySerializerTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
+        start_date = timezone.now() + timezone.timedelta(days=1)
         self.tournament = Tournament.objects.create(
-            year=2024,
-            start_date=timezone.now() + timezone.timedelta(days=1),
+            year=start_date.year,
+            start_date=start_date,
         )
         self.other_tournament = Tournament.objects.create(
             year=2023,
-            start_date=timezone.now() - timezone.timedelta(days=10),
+            start_date=timezone.make_aware(timezone.datetime(2023, 3, 15)),
         )
 
         # Create schools and teams for both tournaments
@@ -175,9 +176,10 @@ class EntrySerializerTests(TestCase):
 class TournamentAutomaticScoresTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
+        start_date = timezone.now() + timezone.timedelta(days=1)
         self.tournament = Tournament.objects.create(
-            year=2024,
-            start_date=timezone.now() + timezone.timedelta(days=1),
+            year=start_date.year,
+            start_date=start_date,
         )
         self.school = School.objects.create(name="School A", abbrev="SCHA")
         # seed 15 => 4 points per win based on SEED_POINT_BANDS
@@ -225,9 +227,10 @@ class TournamentAPITests(APITestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username="admin", password="password", is_staff=True)
         self.normal_user = User.objects.create_user(username="normal", password="password", is_staff=False)
+        start_date = timezone.now() + timezone.timedelta(days=1)
         self.tournament = Tournament.objects.create(
-            year=2024,
-            start_date=timezone.now() + timezone.timedelta(days=1),
+            year=start_date.year,
+            start_date=start_date,
         )
         self.school = School.objects.create(name="School A", abbrev="SCHA")
         self.school_secondary = School.objects.create(name="School B", abbrev="SCHB")
@@ -241,20 +244,24 @@ class TournamentAPITests(APITestCase):
     def test_create_tournament_by_admin(self):
         self.client.force_authenticate(user=self.admin_user)
         url = reverse("tournament-list")
+        next_year = self.tournament.year + 1
+        start_date = timezone.make_aware(timezone.datetime(next_year, 3, 15))
         data = {
-            "year": 2025,
-            "start_date": (timezone.now() + timezone.timedelta(days=10)).isoformat(),
+            "year": next_year,
+            "start_date": start_date.isoformat(),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Tournament.objects.filter(year=2025).count(), 1)
+        self.assertEqual(Tournament.objects.filter(year=next_year).count(), 1)
 
     def test_create_tournament_by_normal_user_denied(self):
         self.client.force_authenticate(user=self.normal_user)
         url = reverse("tournament-list")
+        next_year = self.tournament.year + 1
+        start_date = timezone.make_aware(timezone.datetime(next_year, 3, 15))
         data = {
-            "year": 2025,
-            "start_date": timezone.now().isoformat(),
+            "year": next_year,
+            "start_date": start_date.isoformat(),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 403)
@@ -288,7 +295,7 @@ class TournamentAPITests(APITestCase):
         self.client.force_authenticate(user=self.admin_user)
         url = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
         data = {
-            "school": self.school.id, # school is already in tournament (self.team uses self.school)
+            "school": self.school.id,  # school is already in tournament (self.team uses self.school)
             "seed": 16,
             "region": TournamentTeam.Region.EAST,
         }
@@ -301,7 +308,7 @@ class TournamentAPITests(APITestCase):
         url = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
         data = {
             "school": self.school_secondary.id,
-            "seed": 1, # seed 1, region East is already taken by self.team
+            "seed": 1,  # seed 1, region East is already taken by self.team
             "region": TournamentTeam.Region.EAST,
         }
         response = self.client.post(url, data)
@@ -351,12 +358,25 @@ class TournamentAPITests(APITestCase):
     def test_modify_tournament_start_date_before_lock(self):
         self.client.force_authenticate(user=self.admin_user)
         url = reverse("tournament-detail", kwargs={"pk": self.tournament.id})
-        new_start = timezone.now() + timezone.timedelta(days=5)
+        new_start = self.tournament.start_date + timezone.timedelta(days=4)
         response = self.client.patch(url, {"start_date": new_start.isoformat()})
         self.assertEqual(response.status_code, 200)
         self.tournament.refresh_from_db()
         # Comparing dates, allow small parsing difference
         self.assertAlmostEqual(self.tournament.start_date, new_start, delta=timezone.timedelta(seconds=2))
+
+    def test_create_tournament_mismatched_year_denied(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-list")
+        next_year = self.tournament.year + 5
+        start_date = timezone.make_aware(timezone.datetime(next_year, 3, 15))
+        data = {
+            "year": next_year - 1,
+            "start_date": start_date.isoformat(),
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("start_date", response.data)
 
     def test_modify_tournament_after_lock_denied(self):
         # Lock tournament
@@ -367,6 +387,3 @@ class TournamentAPITests(APITestCase):
         url = reverse("tournament-detail", kwargs={"pk": self.tournament.id})
         response = self.client.patch(url, {"year": 2026})
         self.assertEqual(response.status_code, 400)
-
-
-

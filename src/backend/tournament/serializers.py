@@ -1,7 +1,7 @@
 from accounts.serializers import UserSerializer
 from rest_framework import serializers
 
-from .models import Entry, Tournament, TournamentTeam, School
+from .models import Entry, School, Tournament, TournamentTeam
 
 
 class SchoolSerializer(serializers.ModelSerializer):
@@ -31,6 +31,18 @@ class TournamentSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.instance and self.instance.is_locked:
             raise serializers.ValidationError("Cannot edit a tournament after it has locked.")
+
+        year = attrs.get("year")
+        if year is None and self.instance:
+            year = self.instance.year
+
+        start_date = attrs.get("start_date")
+        if start_date is None and self.instance:
+            start_date = self.instance.start_date
+
+        if year is not None and start_date is not None and start_date.year != year:
+            raise serializers.ValidationError({"start_date": f"The start date must be in the year {year}."})
+
         return attrs
 
 
@@ -113,7 +125,9 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
             if self.instance:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
-                raise serializers.ValidationError({"seed": f"Seed {seed} in the {region} region is already taken in this tournament."})
+                raise serializers.ValidationError(
+                    {"seed": f"Seed {seed} in the {region} region is already taken in this tournament."}
+                )
 
         return attrs
 

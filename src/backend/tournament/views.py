@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, permissions
 
 from . import models, serializers
-from .permissions import IsOwnerOrTournamentLocked, IsAdminUser, IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAdminUser, IsOwnerOrTournamentLocked
 from .tasks import update_tournament_scores
 
 
@@ -61,6 +61,7 @@ class TournamentTeamUpdateView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         from rest_framework.exceptions import ValidationError
+
         if instance.tournament.is_locked:
             raise ValidationError("Cannot remove a team from a locked tournament.")
         instance.delete()

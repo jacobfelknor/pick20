@@ -5,6 +5,7 @@ class IsAdminUser(permissions.BasePermission):
     """
     Permission to only allow admin users.
     """
+
     message = "Only administrators are allowed to perform this action."
 
     def has_permission(self, request, view):
@@ -17,6 +18,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     - Anyone (who is authenticated) to read.
     - Admins to write.
     """
+
     message = "Only administrators can perform write operations."
 
     def has_permission(self, request, view):

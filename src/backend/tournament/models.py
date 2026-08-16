@@ -43,6 +43,13 @@ class Tournament(models.Model):
     def __str__(self):
         return f"{self.year} Tournament"
 
+    def clean(self):
+        super().clean()
+        if self.start_date and self.year and self.start_date.year != self.year:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError({"start_date": f"The start date must be in the year {self.year}."})
+
     @property
     def is_locked(self):
         return timezone.now() >= self.start_date
@@ -150,6 +157,7 @@ class TournamentTeam(models.Model):
 
         if is_new or old_wins != self.wins or old_is_eliminated != self.is_eliminated:
             from .tasks import update_tournament_scores
+
             update_tournament_scores(self.tournament_id, set_standings_last_updated=True)
 
     @property
