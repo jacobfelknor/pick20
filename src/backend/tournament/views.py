@@ -54,10 +54,16 @@ class TournamentTeamListView(generics.ListCreateAPIView):
         serializer.save(tournament=tournament)
 
 
-class TournamentTeamUpdateView(generics.UpdateAPIView):
+class TournamentTeamUpdateView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.TournamentTeamSerializer
     permission_classes = (IsAdminUser,)
     queryset = models.TournamentTeam.objects.all()
+
+    def perform_destroy(self, instance):
+        from rest_framework.exceptions import ValidationError
+        if instance.tournament.is_locked:
+            raise ValidationError("Cannot remove a team from a locked tournament.")
+        instance.delete()
 
 
 class EntryListView(generics.ListAPIView):

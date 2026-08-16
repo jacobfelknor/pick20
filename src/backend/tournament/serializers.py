@@ -28,6 +28,11 @@ class TournamentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("standings_last_updated_at",)
 
+    def validate(self, attrs):
+        if self.instance and self.instance.is_locked:
+            raise serializers.ValidationError("Cannot edit a tournament after it has locked.")
+        return attrs
+
 
 class TournamentTeamSerializer(serializers.ModelSerializer):
     school_name = serializers.CharField(source="school.name", read_only=True)
@@ -68,6 +73,49 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
         if hasattr(obj, "entries_count"):
             return obj.entries_count
         return obj.entry_set.count()
+
+    def validate(self, attrs):
+        # 1. Get tournament
+        tournament = None
+        if self.instance:
+            tournament = self.instance.tournament
+        else:
+            view = self.context.get("view")
+            if view:
+                tournament_id = view.kwargs.get("tournament_id")
+                if tournament_id:
+                    try:
+                        tournament = Tournament.objects.get(pk=tournament_id)
+                    except Tournament.DoesNotExist:
+                        pass
+
+        if not tournament:
+            raise serializers.ValidationError("Tournament not found.")
+
+        # 2. Check if tournament is locked
+        if tournament.is_locked:
+            raise serializers.ValidationError("Cannot add or modify teams after the tournament has locked.")
+
+        # 3. Check for school duplication in the same tournament
+        school = attrs.get("school")
+        if school:
+            qs = TournamentTeam.objects.filter(tournament=tournament, school=school)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError({"school": f"The team {school.name} is already in this tournament."})
+
+        # 4. Check for duplicate seed/region in the same tournament
+        seed = attrs.get("seed") or (self.instance.seed if self.instance else None)
+        region = attrs.get("region") or (self.instance.region if self.instance else None)
+        if seed is not None and region:
+            qs = TournamentTeam.objects.filter(tournament=tournament, seed=seed, region=region)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError({"seed": f"Seed {seed} in the {region} region is already taken in this tournament."})
+
+        return attrs
 
 
 class EntrySerializer(serializers.ModelSerializer):

@@ -284,4 +284,89 @@ class TournamentAPITests(APITestCase):
         self.assertEqual(self.team.wins, 3)
         self.assertTrue(self.team.is_eliminated)
 
+    def test_create_duplicate_school_team_denied(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
+        data = {
+            "school": self.school.id, # school is already in tournament (self.team uses self.school)
+            "seed": 16,
+            "region": TournamentTeam.Region.EAST,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("school", response.data)
+
+    def test_create_duplicate_seed_region_denied(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
+        data = {
+            "school": self.school_secondary.id,
+            "seed": 1, # seed 1, region East is already taken by self.team
+            "region": TournamentTeam.Region.EAST,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("seed", response.data)
+
+    def test_add_or_modify_team_when_tournament_locked_denied(self):
+        # Lock tournament
+        self.tournament.start_date = timezone.now() - timezone.timedelta(days=1)
+        self.tournament.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        # Try adding
+        url_add = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
+        data_add = {
+            "school": self.school_secondary.id,
+            "seed": 16,
+            "region": TournamentTeam.Region.WEST,
+        }
+        response_add = self.client.post(url_add, data_add)
+        self.assertEqual(response_add.status_code, 400)
+
+        # Try modifying
+        url_patch = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
+        data_patch = {"wins": 1}
+        response_patch = self.client.patch(url_patch, data_patch)
+        self.assertEqual(response_patch.status_code, 400)
+
+    def test_delete_team_by_admin_before_lock(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(TournamentTeam.objects.filter(pk=self.team.id).count(), 0)
+
+    def test_delete_team_by_admin_after_lock_denied(self):
+        # Lock tournament
+        self.tournament.start_date = timezone.now() - timezone.timedelta(days=1)
+        self.tournament.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(TournamentTeam.objects.filter(pk=self.team.id).count(), 1)
+
+    def test_modify_tournament_start_date_before_lock(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-detail", kwargs={"pk": self.tournament.id})
+        new_start = timezone.now() + timezone.timedelta(days=5)
+        response = self.client.patch(url, {"start_date": new_start.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        self.tournament.refresh_from_db()
+        # Comparing dates, allow small parsing difference
+        self.assertAlmostEqual(self.tournament.start_date, new_start, delta=timezone.timedelta(seconds=2))
+
+    def test_modify_tournament_after_lock_denied(self):
+        # Lock tournament
+        self.tournament.start_date = timezone.now() - timezone.timedelta(days=1)
+        self.tournament.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse("tournament-detail", kwargs={"pk": self.tournament.id})
+        response = self.client.patch(url, {"year": 2026})
+        self.assertEqual(response.status_code, 400)
+
+
 

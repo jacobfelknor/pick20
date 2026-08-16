@@ -64,7 +64,7 @@ export function AppLayout() {
     // if we're not on an teams view, switch back to the entries table.
     // it only makes sense to see the same page after switching years 
     // if the object can span tournaments - right now that is only the teams list
-    if (!location.pathname.includes('/teams')) {
+    if (!(location.pathname.includes('/teams') || location.pathname.includes('/admin/dashboard'))) {
       navigate("/entries")
     }
   }

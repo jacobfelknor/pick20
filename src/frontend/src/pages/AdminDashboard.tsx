@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 import {
@@ -30,8 +30,33 @@ import {
     IconTrophy,
     IconChecks,
     IconUserCheck,
+    IconTrash,
+    IconCalendar,
 } from "@tabler/icons-react";
 import api from "../api";
+
+function formatError(err: any): string {
+    const data = err.response?.data;
+    if (!data) return "An unexpected error occurred.";
+    if (typeof data === "string") return data;
+    if (Array.isArray(data)) return data.join(" ");
+    if (typeof data === "object") {
+        const messages: string[] = [];
+        for (const key of Object.keys(data)) {
+            const val = data[key];
+            const fieldPrefix = key === "non_field_errors" || key === "detail" ? "" : `${key}: `;
+            if (Array.isArray(val)) {
+                messages.push(`${fieldPrefix}${val.join(" ")}`);
+            } else if (typeof val === "object" && val !== null) {
+                messages.push(`${fieldPrefix}${JSON.stringify(val)}`);
+            } else {
+                messages.push(`${fieldPrefix}${val}`);
+            }
+        }
+        return messages.join(" | ");
+    }
+    return JSON.stringify(data);
+}
 
 export default function AdminDashboard() {
     const { tournament } = useOutletContext<any>();
@@ -48,9 +73,13 @@ export default function AdminDashboard() {
     // Add Team form state
     const [addTeamSchool, setAddTeamSchool] = useState<string | null>(null);
     const [addTeamSchoolSecondary, setAddTeamSchoolSecondary] = useState<string | null>(null);
-    const [addTeamSeed, setAddTeamSeed] = useState<number | "">(1);
-    const [addTeamRegion, setAddTeamRegion] = useState<string | null>("East");
+    const [addTeamSeed, setAddTeamSeed] = useState<number | "">("");
+    const [addTeamRegion, setAddTeamRegion] = useState<string | null>(null);
     const [addTeamLoading, setAddTeamLoading] = useState(false);
+
+    // Edit Tournament start date form state
+    const [editStartDate, setEditStartDate] = useState("");
+    const [editStartDateLoading, setEditStartDateLoading] = useState(false);
 
     // 1. Auth Query (Verify if Admin)
     const { data: userProfile, isLoading: isUserLoading } = useQuery({
@@ -64,6 +93,15 @@ export default function AdminDashboard() {
         queryFn: () => api.get(`/api/tournament/${tournament}/`).then((res) => res.data),
         enabled: !!tournament,
     });
+
+    useEffect(() => {
+        if (tournamentDetail?.start_date) {
+            const date = new Date(tournamentDetail.start_date);
+            const tzoffset = date.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
+            setEditStartDate(localISOTime);
+        }
+    }, [tournamentDetail]);
 
     // 3. Fetch Schools
     const { data: schools } = useQuery({
@@ -139,7 +177,28 @@ export default function AdminDashboard() {
         onError: (err: any) => {
             notifications.show({
                 title: "Update Failed",
-                message: err.response?.data?.message || "Could not update team.",
+                message: formatError(err),
+                color: "red",
+            });
+        },
+    });
+
+    const deleteTeamMutation = useMutation({
+        mutationFn: (teamId: number) =>
+            api.delete(`/api/tournament/${tournament}/teams/${teamId}/`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["teams", tournament] });
+            queryClient.invalidateQueries({ queryKey: ["tournamentDetail", tournament] });
+            notifications.show({
+                title: "Team Removed",
+                message: "Team has been successfully removed from the tournament.",
+                color: "green",
+            });
+        },
+        onError: (err: any) => {
+            notifications.show({
+                title: "Removal Failed",
+                message: formatError(err),
                 color: "red",
             });
         },
@@ -212,7 +271,7 @@ export default function AdminDashboard() {
 
     const handleAddTeam = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!addTeamSchool || !addTeamSeed || !addTeamRegion) {
+        if (!addTeamSchool || addTeamSeed === "" || !addTeamRegion) {
             notifications.show({
                 title: "Validation Error",
                 message: "School, Seed, and Region are required fields.",
@@ -242,15 +301,50 @@ export default function AdminDashboard() {
             // Reset form
             setAddTeamSchool(null);
             setAddTeamSchoolSecondary(null);
-            setAddTeamSeed(1);
+            setAddTeamSeed("");
+            setAddTeamRegion(null);
         } catch (err: any) {
             notifications.show({
                 title: "Failed to Add Team",
-                message: JSON.stringify(err.response?.data) || "Could not add team.",
+                message: formatError(err),
                 color: "red",
             });
         } finally {
             setAddTeamLoading(false);
+        }
+    };
+
+    const handleEditStartDate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editStartDate) {
+            notifications.show({
+                title: "Validation Error",
+                message: "Please select a start date.",
+                color: "yellow",
+            });
+            return;
+        }
+
+        setEditStartDateLoading(true);
+        try {
+            await api.patch(`/api/tournament/${tournament}/`, {
+                start_date: new Date(editStartDate).toISOString(),
+            });
+            notifications.show({
+                title: "Success",
+                message: "Tournament start date updated successfully.",
+                color: "green",
+            });
+            queryClient.invalidateQueries({ queryKey: ["tournamentDetail", tournament] });
+            queryClient.invalidateQueries({ queryKey: ["tournaments"] });
+        } catch (err: any) {
+            notifications.show({
+                title: "Update Failed",
+                message: formatError(err),
+                color: "red",
+            });
+        } finally {
+            setEditStartDateLoading(false);
         }
     };
 
@@ -292,7 +386,7 @@ export default function AdminDashboard() {
                 </div>
                 {tournamentDetail && (
                     <Badge size="lg" color={tournamentDetail.concluded ? "gray" : tournamentDetail.is_locked ? "blue" : "yellow"}>
-                        {tournamentDetail.concluded ? "Concluded" : tournamentDetail.is_locked ? "Locked" : "Pre-Start"}
+                        {tournamentDetail.concluded ? "Concluded" : tournamentDetail.is_locked ? "Locked" : "Pending"}
                     </Badge>
                 )}
             </Group>
@@ -366,6 +460,7 @@ export default function AdminDashboard() {
                                 <SimpleGrid cols={2}>
                                     <NumberInput
                                         label="Seed"
+                                        placeholder="Select seed (1-16)"
                                         min={1}
                                         max={16}
                                         value={addTeamSeed}
@@ -374,6 +469,7 @@ export default function AdminDashboard() {
                                     />
                                     <Select
                                         label="Region"
+                                        placeholder="Select region"
                                         data={regionOptions}
                                         value={addTeamRegion}
                                         onChange={setAddTeamRegion}
@@ -388,6 +484,30 @@ export default function AdminDashboard() {
                         </form>
                     )}
                 </Paper>
+
+                {/* Edit Tournament Start Date */}
+                {tournamentDetail && !tournamentDetail.is_locked && (
+                    <Paper withBorder p="md" radius="md" shadow="sm">
+                        <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <IconCalendar size={20} color="blue" /> Edit {tournamentDetail.year} Start Date
+                        </Title>
+                        <form onSubmit={handleEditStartDate}>
+                            <Stack gap="sm">
+                                <TextInput
+                                    label="Start Date & Time (Picks Lock)"
+                                    placeholder="Select date and time"
+                                    type="datetime-local"
+                                    value={editStartDate}
+                                    onChange={(e) => setEditStartDate(e.currentTarget.value)}
+                                    required
+                                />
+                                <Button type="submit" loading={editStartDateLoading} color="blue" mt="xs">
+                                    Update Start Date
+                                </Button>
+                            </Stack>
+                        </form>
+                    </Paper>
+                )}
             </SimpleGrid>
 
             {/* FIRST FOUR RESOLUTION SECTION */}
@@ -508,6 +628,21 @@ export default function AdminDashboard() {
                                                         </Table.Td>
                                                         <Table.Td>
                                                             <Group gap={4} justify="flex-end" wrap="nowrap">
+                                                                {!tournamentDetail?.is_locked && (
+                                                                    <ActionIcon
+                                                                        size="sm"
+                                                                        variant="light"
+                                                                        color="red"
+                                                                        onClick={() => {
+                                                                            if (window.confirm(`Are you sure you want to remove ${team.name_display} from this tournament?`)) {
+                                                                                deleteTeamMutation.mutate(team.id);
+                                                                            }
+                                                                        }}
+                                                                        loading={deleteTeamMutation.isPending}
+                                                                    >
+                                                                        <IconTrash size={14} />
+                                                                    </ActionIcon>
+                                                                )}
                                                                 <ActionIcon
                                                                     size="sm"
                                                                     variant="light"
