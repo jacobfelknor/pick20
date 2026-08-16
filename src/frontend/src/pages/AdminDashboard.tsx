@@ -521,7 +521,7 @@ export default function AdminDashboard() {
                                 <Grid.Col key={regionKey} span={{ base: 12, md: 6 }}>
                                     <Paper withBorder p="sm" radius="md" bg="var(--mantine-color-gray-0)">
                                         <Title order={4} mb="sm" ta="center" style={{ textTransform: "uppercase", letterSpacing: 1 }}>
-                                            {regionKey} Region ({rTeams.length} Alive)
+                                            {regionKey} Region ({rTeams.length} Teams{!showEliminated ? ' Alive' : ''})
                                         </Title>
                                         <Table verticalSpacing="xs" striped highlightOnHover>
                                             <Table.Thead>
@@ -572,33 +572,37 @@ export default function AdminDashboard() {
                                                                         <IconTrash size={14} />
                                                                     </ActionIcon>
                                                                 )}
-                                                                <ActionIcon
-                                                                    size="sm"
-                                                                    variant="light"
-                                                                    color="blue"
-                                                                    onClick={() => handleUpdateWins(team, 1)}
-                                                                    disabled={team.wins >= 6 || team.is_eliminated}
-                                                                >
-                                                                    <IconPlus size={14} />
-                                                                </ActionIcon>
-                                                                <ActionIcon
-                                                                    size="sm"
-                                                                    variant="light"
-                                                                    color="orange"
-                                                                    onClick={() => handleUpdateWins(team, -1)}
-                                                                    disabled={team.wins <= 0 || team.is_eliminated}
-                                                                >
-                                                                    <IconMinus size={14} />
-                                                                </ActionIcon>
-                                                                <Button
-                                                                    size="xs"
-                                                                    variant="light"
-                                                                    color={team.is_eliminated ? "teal" : "red"}
-                                                                    px={6}
-                                                                    onClick={() => handleToggleEliminated(team)}
-                                                                >
-                                                                    {team.is_eliminated ? "Restore" : "Eliminate"}
-                                                                </Button>
+                                                                {tournamentDetail?.is_locked && (
+                                                                    <>
+                                                                        <ActionIcon
+                                                                            size="sm"
+                                                                            variant="light"
+                                                                            color="blue"
+                                                                            onClick={() => handleUpdateWins(team, 1)}
+                                                                            disabled={team.wins >= 6 || team.is_eliminated}
+                                                                        >
+                                                                            <IconPlus size={14} />
+                                                                        </ActionIcon>
+                                                                        <ActionIcon
+                                                                            size="sm"
+                                                                            variant="light"
+                                                                            color="orange"
+                                                                            onClick={() => handleUpdateWins(team, -1)}
+                                                                            disabled={team.wins <= 0 || team.is_eliminated}
+                                                                        >
+                                                                            <IconMinus size={14} />
+                                                                        </ActionIcon>
+                                                                        <Button
+                                                                            size="xs"
+                                                                            variant="light"
+                                                                            color={team.is_eliminated ? "teal" : "red"}
+                                                                            px={6}
+                                                                            onClick={() => handleToggleEliminated(team)}
+                                                                        >
+                                                                            {team.is_eliminated ? "Restore" : "Eliminate"}
+                                                                        </Button>
+                                                                    </>
+                                                                )}
                                                             </Group>
                                                         </Table.Td>
                                                     </Table.Tr>
