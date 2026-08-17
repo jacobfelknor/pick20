@@ -7,51 +7,63 @@ from .models import SEED_POINT_BANDS, Entry, Tournament, TournamentTeam
 
 def calculate_optimistic_gain(picks, current_round, total_tournament_wins):
     """
-    Calculates max potential gain by assigning available wins per round
-    to the highest-value teams first, taking into account how many rounds are remaining.
+    Calculates the maximum possible points (optimistic potential gain) a list of picks can earn
+    for the rest of the tournament. It does this by using a greedy strategy that allocates
+    remaining available tournament wins per round to the highest-scoring teams first.
 
-    For a team to get a win in round r (where r >= current_round), they must:
-    1. Not be eliminated currently.
-    2. Be hypothetically alive for round r (i.e. they already have r - 1 wins,
-       either in reality, or awarded in prior rounds of this simulation).
-
-    This prevents teams from skipping a round or winning multiple games in the same round,
-    while correctly prioritizing our highest-value active teams.
+    To enforce physical tournament rules in a simulated manner:
+    1. A team can only win a game in round `r` if they have successfully "won" `r - 1` games previously.
+    2. The number of wins assigned in any round cannot exceed the remaining available win slots in that round.
     """
-    # 1. Filter for teams not yet eliminated
+    # Step 1: Only consider active picks (teams that are not yet eliminated)
     eligible_teams = list(filter(lambda x: not x.is_eliminated, picks))
 
-    # 2. Track hypothetical wins for each team
-    # Initially, each team starts with their actual wins
+    # Step 2: Track hypothetical wins for each team during the greedy simulation.
+    # We initialize this mapping with the actual wins each active team currently has.
     hypothetical_wins = {team.id: team.wins for team in eligible_teams}
 
     total_potential_gain = 0
 
-    # 3. Process each round from current_round onwards
+    # Step 3: Chronologically simulate every round from the current round up to the championship (MAX_WINS = 6).
     for r in range(current_round, TournamentTeam.MAX_WINS + 1):
-        # Calculate global slots remaining for this round
+        # Determine the number of global win slots remaining/unplayed in this specific round.
         if r == current_round:
+            # First round of simulation needs special handling because it might be partially completed.
+            # Calculate the total wins that should have occurred in all prior rounds combined.
+            # e.g., Before Round 2, Round 1 must have exactly 32 wins.
             total_wins_prior_to_this_round = sum(2 ** (TournamentTeam.MAX_WINS - i) for i in range(1, r))
+
+            # Determine how many wins in the current round have already finished and been recorded globally.
             wins_already_finished_in_round = max(total_tournament_wins - total_wins_prior_to_this_round, 0)
+
+            # A full round 'r' has 2^(MAX_WINS - r) total games/wins (e.g., Round 1 = 32, Round 2 = 16, etc.)
             wins_to_complete_this_round = 2 ** (TournamentTeam.MAX_WINS - r)
+
+            # The remaining win slots to allocate in the current round is the difference.
             wins_remaining_in_this_round = max(wins_to_complete_this_round - wins_already_finished_in_round, 0)
         else:
+            # Future rounds are completely unplayed, so all 2^(MAX_WINS - r) slots are available.
             wins_remaining_in_this_round = 2 ** (TournamentTeam.MAX_WINS - r)
 
-        # Filter teams that are active and have exactly r - 1 wins (hypothetically)
-        # So they can be awarded a win in round r.
+        # Step 4: Identify teams that are active and are eligible to win in this round.
+        # To win in round `r`, a team must have exactly `r - 1` wins (meaning they won their previous round's game).
         round_eligible_teams = [team for team in eligible_teams if hypothetical_wins[team.id] == r - 1]
 
-        # Prioritize highest value teams first (highest points_per_win)
+        # Step 5: Prioritize highest-value teams first.
+        # We sort eligible teams descending by their point yield per win (based on their seed).
         round_eligible_teams.sort(key=lambda x: x.points_per_win, reverse=True)
 
+        # Step 6: Greedily assign wins up to the remaining slot capacity in this round.
         wins_awarded = 0
         for team in round_eligible_teams:
             if wins_awarded < wins_remaining_in_this_round:
+                # Award the win: add points to the running potential gain,
+                # and increment their hypothetical wins so they become eligible for the next round.
                 total_potential_gain += team.points_per_win
                 hypothetical_wins[team.id] = r
                 wins_awarded += 1
             else:
+                # No more available win slots in this round, move to the next round.
                 break
 
     return total_potential_gain
@@ -59,24 +71,27 @@ def calculate_optimistic_gain(picks, current_round, total_tournament_wins):
 
 def update_tournament_scores(tournament: Tournament | int, set_standings_last_updated: bool = False):
     """
-    Recalculates and saves the current_score for all entries
-    within a specific tournament.
+    Recalculates and bulk-saves current scores, potential scores, ranks,
+    and eligibility standing (still_alive) for all entries in a specific tournament.
     """
 
     if isinstance(tournament, int):
         tournament = Tournament.objects.get(pk=tournament)
 
-    # 1. Annotate scores and potential scores dynamically using the generalized SEED_POINT_BANDS
+    # Step 1: Dynamically map each team's seed to its point value using SEED_POINT_BANDS.
+    # We construct SQL 'When' cases to calculate points: (wins * points_per_win)
     scoring_cases = [
         When(picks__seed__range=seed_range, then=F("picks__wins") * points) for seed_range, points in SEED_POINT_BANDS
     ]
 
+    # Step 2: Query and annotate each entry with its current total score.
+    # We prefetch 'picks' to optimize database hits when calling the greedy simulation in Python.
     base_queryset = (
         Entry.objects.filter(tournament=tournament)
         .prefetch_related("picks")
         .annotate(
-            # Current Score Logic
-            # Coalesce handles the case where an entry has no picks and Sum returns NULL
+            # Calculate total score: sum up points earned across all picked teams.
+            # Coalesce defaults to 0 if an entry has no picks (which would otherwise return NULL from Sum).
             calculated_points=Coalesce(
                 Sum(
                     Case(
@@ -90,55 +105,57 @@ def update_tournament_scores(tournament: Tournament | int, set_standings_last_up
         )
     )
 
-    # 2. Add Window Functions for Ranking
-    # Note: Window functions can't be used in filter/update directly,
-    # so we evaluate them in this queryset.
+    # Step 3: Calculate current actual rankings across the database using a Window function.
+    # We cannot perform standard filter/update operations directly on querysets containing Window functions,
+    # so we evaluate the queryset to a list to read the calculated rank values in Python.
     entries_ranked = base_queryset.annotate(
         temp_current_rank=Window(expression=Rank(), order_by=F("calculated_points").desc())
     )
 
-    # Evaluate queryset to list once to cache results and prevent multiple evaluations
     entries_ranked_list = list(entries_ranked)
 
-    # Calculate the max current score to determine 'still_alive'
+    # Step 4: Extract global standings facts to determine 'still_alive' and 'max_potential_rank'.
+    # Find the maximum actual score currently held by any player in the pool.
     max_current_score = base_queryset.aggregate(Max("calculated_points"))["calculated_points__max"] or 0
 
-    # Get a list of all current scores to calculate Max Potential Rank
-    # Max Potential Rank = How many people CURRENTLY have a score higher than your POTENTIAL score?
+    # Get a sorted list of all players' actual scores descending to calculate 'max_potential_rank'.
     all_current_scores = sorted([e.calculated_points for e in entries_ranked_list], reverse=True)
 
-    # calculate this once outside the loop to avoid N queries
+    # Get the global tournament state once to avoid repeated queries inside the entry loop.
     current_round = tournament.current_round
     total_tournament_wins = tournament.total_wins
 
-    # 3. Prepare for Bulk Update
+    # Step 5: Process each entry individually to calculate and cache their updated standing.
     updated_entries = []
     for entry in entries_ranked_list:
         entry.score = entry.calculated_points or 0
 
-        # Calculate the capped potential gain
-        # Use .all() to hit the prefetched cache
+        # Run the greedy win simulation over this entry's picks to find their potential points remaining.
+        # Using .all() uses the prefetched cache to prevent N+1 queries.
         calculated_potential_gain = calculate_optimistic_gain(entry.picks.all(), current_round, total_tournament_wins)
         entry.potential_score = entry.score + (calculated_potential_gain or 0)
+
+        # Cache the current rank computed by Django's Window Rank() function.
         entry.current_rank = entry.temp_current_rank
+
+        # A player is "still alive" if their maximum theoretical potential score is at least
+        # equal to the current highest actual score in the pool. Otherwise, they are mathematically eliminated.
         entry.still_alive = entry.potential_score >= max_current_score
 
         # Calculate Max Potential Rank:
-        # Find how many entries have a current score strictly greater than this entry's potential
-        # Rank = (Count of people better than you) + 1
+        # Determine the absolute best rank this entry could get if everything goes perfectly.
+        # This is equal to: (Count of other players who CURRENTLY have an actual score strictly greater than this entry's potential score) + 1.
         better_than_me = sum(1 for s in all_current_scores if s > entry.potential_score)
         entry.max_potential_rank = better_than_me + 1
 
         updated_entries.append(entry)
 
-    # 4. Execute Bulk Update
+    # Step 6: Bulk update all modified fields on all entries in a single optimized database query.
     Entry.objects.bulk_update(
         updated_entries, ["score", "potential_score", "current_rank", "max_potential_rank", "still_alive"]
     )
 
-    # 5. Update tournament standing last updated at, if requested
-    #    Intended to only be used when an admin has updated win counts for
-    #    TournamentTeams
+    # Step 7: Record when the standings were last updated if requested (usually triggered by admin win updates).
     if set_standings_last_updated:
         tournament.standings_last_updated_at = timezone.now()
         tournament.save()

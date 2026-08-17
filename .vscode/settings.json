@@ -5,6 +5,7 @@
     ],
     "chat.tools.terminal.autoApprove": {
         "/home/workdir/.venv/bin/python": true,
-        "npm run build": true
+        "npm run build": true,
+        "ruff": true
     }
 }
