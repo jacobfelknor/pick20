@@ -131,7 +131,7 @@ const EntryDetail = () => {
                         </div>
 
                         <Group gap="xs" align="center">
-                            {isAdmin ? (
+                            {isAdmin && (
                                 <Switch
                                     label="Paid Status"
                                     checked={entryDetail.paid}
@@ -141,7 +141,9 @@ const EntryDetail = () => {
                                     offLabel="Unpaid"
                                     style={{ cursor: 'pointer' }}
                                 />
-                            ) : (
+                            )}
+                            {/* IF WE WANTED TO START "SHAMING" USERS..... WE COULD SHOW THEIR PAID STATUS */}
+                            {/* : (
                                 <Badge
                                     size="lg"
                                     variant="light"
@@ -150,7 +152,7 @@ const EntryDetail = () => {
                                 >
                                     {entryDetail.paid ? "Paid" : "Payment Pending"}
                                 </Badge>
-                            )}
+                            ) */}
                             <Badge
                                 size="lg"
                                 variant="light"
