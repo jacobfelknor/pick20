@@ -93,7 +93,9 @@ class Tournament(models.Model):
         for limit, round_num in self.ROUND_WINS_THRESHOLDS:
             if total < limit:
                 return round_num
-        return 7
+        # If total wins are >= 63, the tournament is concluded.
+        # We return MAX_WINS + 1 (7) to indicate that there are no remaining rounds to simulate.
+        return TournamentTeam.MAX_WINS + 1
 
 
 class TournamentTeam(models.Model):
