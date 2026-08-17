@@ -105,8 +105,8 @@ class TournamentTeamSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Tournament not found.")
 
         # 2. Check if tournament is locked
-        if tournament.is_locked:
-            raise serializers.ValidationError("Cannot add or modify teams after the tournament has locked.")
+        if tournament.is_locked and not self.instance:
+            raise serializers.ValidationError("Cannot add teams after the tournament has locked.")
 
         # 3. Check for school duplication in the same tournament
         school = attrs.get("school")

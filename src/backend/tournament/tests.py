@@ -315,13 +315,13 @@ class TournamentAPITests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("seed", response.data)
 
-    def test_add_or_modify_team_when_tournament_locked_denied(self):
+    def test_add_denied_but_modify_allowed_when_tournament_locked(self):
         # Lock tournament
         self.tournament.start_date = timezone.now() - timezone.timedelta(days=1)
         self.tournament.save()
 
         self.client.force_authenticate(user=self.admin_user)
-        # Try adding
+        # Try adding - should be denied
         url_add = reverse("tournament-team-list", kwargs={"tournament_id": self.tournament.id})
         data_add = {
             "school": self.school_secondary.id,
@@ -331,11 +331,19 @@ class TournamentAPITests(APITestCase):
         response_add = self.client.post(url_add, data_add)
         self.assertEqual(response_add.status_code, 400)
 
-        # Try modifying
+        # Try modifying - should be allowed
         url_patch = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
         data_patch = {"wins": 1}
         response_patch = self.client.patch(url_patch, data_patch)
-        self.assertEqual(response_patch.status_code, 400)
+        self.assertEqual(response_patch.status_code, 200)
+        self.team.refresh_from_db()
+        self.assertEqual(self.team.wins, 1)
+
+        # Try removing (deleting) - should be denied under lock
+        url_delete = reverse("tournament-team-update", kwargs={"tournament_id": self.tournament.id, "pk": self.team.id})
+        response_delete = self.client.delete(url_delete)
+        self.assertEqual(response_delete.status_code, 400)
+        self.assertEqual(TournamentTeam.objects.filter(pk=self.team.id).count(), 1)
 
     def test_delete_team_by_admin_before_lock(self):
         self.client.force_authenticate(user=self.admin_user)
