@@ -1,4 +1,4 @@
-import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title, Switch } from "@mantine/core";
+import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Title, Checkbox, Loader } from "@mantine/core";
 import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconTournament, IconTrash, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
@@ -36,8 +36,11 @@ const EntryDetail = () => {
     const togglePaidMutation = useMutation({
         mutationFn: () =>
             api.patch(`/api/entries/${id}/`, { paid: !entryDetail?.paid }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['entryDetail', id] });
+        onSuccess: (res) => {
+            // update this entryDetail's data to the response immediately
+            queryClient.setQueryData(['entryDetail', id], res.data);
+            // tell the table that we need to refetch data the next time it loads
+            queryClient.invalidateQueries({ queryKey: ['entries'] });
             notifications.show({
                 title: 'Payment Status Updated',
                 message: 'Successfully updated the entry payment status.',
@@ -132,15 +135,16 @@ const EntryDetail = () => {
 
                         <Group gap="xs" align="center">
                             {isAdmin && (
-                                <Switch
-                                    label="Paid Status"
-                                    checked={entryDetail.paid}
-                                    onChange={() => togglePaidMutation.mutate()}
-                                    size="md"
-                                    onLabel="Paid"
-                                    offLabel="Unpaid"
-                                    style={{ cursor: 'pointer' }}
-                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    {togglePaidMutation.isPending && <Loader size="xs" />}
+                                    <Checkbox
+                                        label="Paid Status"
+                                        checked={entryDetail.paid}
+                                        onChange={() => togglePaidMutation.mutate()}
+                                        disabled={togglePaidMutation.isPending}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                </div>
                             )}
                             {/* IF WE WANTED TO START "SHAMING" USERS..... WE COULD SHOW THEIR PAID STATUS */}
                             {/* : (

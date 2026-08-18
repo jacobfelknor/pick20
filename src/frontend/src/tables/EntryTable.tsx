@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
 import CheckOrXIcon from "../components/CheckOrXIcon";
 import { useNavigate } from "react-router-dom";
-import { MultiSelect, Checkbox, Select } from "@mantine/core";
+import { MultiSelect, Checkbox, Select, Loader } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useLocalStorage } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -31,12 +31,25 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
     const togglePaidMutation = useMutation({
         mutationFn: ({ id, paid }: { id: number, paid: boolean }) =>
             api.patch(`/api/entries/${id}/`, { paid: !paid }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['entries', tournament, onlyMyEntries] });
-            // notifications.show({
-            //     title: 'Payment Status Updated',
-            //     message: 'Successfully updated the entry payment status.',
-            //     color: 'green',
+        onSuccess: (res, variables) => {
+
+            // instead of invalidating the entire table's query, update 
+            // this rows data in place. That way, the table itself doesn't
+            // reload and "flash" on 
+            queryClient.setQueryData(['entries', tournament, onlyMyEntries], (oldEntries: any) => {
+                if (!oldEntries) return oldEntries;
+                return oldEntries.map((entry: any) => {
+                    if (entry.id === variables.id) {
+                        return { ...entry, paid: res.data.paid };
+                    }
+                    return entry;
+                });
+            });
+            // Not sure that this one is required? When I visit this entries after updating
+            // in the table, it re-fetches anyway
+            // queryClient.setQueryData(['entryDetail', variables.id.toString()], (oldDetail: any) => {
+            //     if (!oldDetail) return oldDetail;
+            //     return { ...oldDetail, paid: res.data.paid };
             // });
         },
         onError: () => {
@@ -144,15 +157,22 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
                 accessor: 'paid',
                 title: "Paid",
                 sortable: true,
-                render: ({ id, paid }: any) => (
-                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', justifyContent: 'center' }}>
-                        <Checkbox
-                            checked={paid}
-                            onChange={() => togglePaidMutation.mutate({ id, paid })}
-                            style={{ cursor: 'pointer' }}
-                        />
-                    </div>
-                ),
+                render: ({ id, paid }: any) => {
+                    const isMutating = togglePaidMutation.isPending && togglePaidMutation.variables?.id === id;
+                    return (
+                        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '20px' }}>
+                            {isMutating ? (
+                                <Loader size="xs" />
+                            ) : (
+                                <Checkbox
+                                    checked={paid}
+                                    onChange={() => togglePaidMutation.mutate({ id, paid })}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            )}
+                        </div>
+                    );
+                },
                 filter: (
                     <Select
                         label="Payment Status"
