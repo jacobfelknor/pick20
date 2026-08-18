@@ -6,7 +6,13 @@ urlpatterns = [
     # GET to list
     path("tournament/", views.TournamentListView.as_view(), name="tournament-list"),
     path("tournament/<pk>/", views.TournamentDetailView.as_view(), name="tournament-detail"),
+    path("schools/", views.SchoolListView.as_view(), name="school-list"),
     path("tournament/<int:tournament_id>/teams/", views.TournamentTeamListView.as_view(), name="tournament-team-list"),
+    path(
+        "tournament/<int:tournament_id>/teams/<int:pk>/",
+        views.TournamentTeamUpdateView.as_view(),
+        name="tournament-team-update",
+    ),
     path("tournament/<int:tournament_id>/entries/", views.EntryListView.as_view(), name="entry-list"),
     # POST here to create
     path("entries/", views.EntryCreateView.as_view(), name="entry-create"),

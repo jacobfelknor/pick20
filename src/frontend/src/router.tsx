@@ -8,6 +8,7 @@ import EntryDetail from "./pages/EntryDetail";
 import Profile from "./pages/Profile";
 import TeamList from "./pages/TeamList";
 import Rules from "./pages/Rules";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: "/rules",
         element: <Rules />,
+      },
+      {
+        path: "/admin/dashboard",
+        element: <AdminDashboard />,
       },
     ],
   },
