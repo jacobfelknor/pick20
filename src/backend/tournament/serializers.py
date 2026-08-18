@@ -29,8 +29,8 @@ class TournamentSerializer(serializers.ModelSerializer):
         read_only_fields = ("standings_last_updated_at",)
 
     def validate(self, attrs):
-        if self.instance and self.instance.is_locked:
-            raise serializers.ValidationError("Cannot edit a tournament after it has locked.")
+        if self.instance and self.instance.concluded:
+            raise serializers.ValidationError("Cannot edit a tournament after it has concluded.")
 
         year = attrs.get("year")
         if year is None and self.instance:

@@ -386,9 +386,9 @@ class TournamentAPITests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("start_date", response.data)
 
-    def test_modify_tournament_after_lock_denied(self):
-        # Lock tournament
-        self.tournament.start_date = timezone.now() - timezone.timedelta(days=1)
+    def test_modify_tournament_after_concluded_denied(self):
+        # Conclude tournament
+        self.tournament.concluded = True
         self.tournament.save()
 
         self.client.force_authenticate(user=self.admin_user)

@@ -21,6 +21,7 @@ import {
     Badge,
     ActionIcon,
     Table,
+    Checkbox,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -74,6 +75,7 @@ export default function AdminDashboard() {
     // Edit Tournament start date form state
     const [editStartDate, setEditStartDate] = useState("");
     const [editStartDateLoading, setEditStartDateLoading] = useState(false);
+    const [editConcluded, setEditConcluded] = useState(false);
 
     // 1. Auth Query (Verify if Admin)
     const { data: userProfile, isLoading: isUserLoading } = useQuery({
@@ -94,6 +96,9 @@ export default function AdminDashboard() {
             const tzoffset = date.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
             setEditStartDate(localISOTime);
+        }
+        if (tournamentDetail) {
+            setEditConcluded(tournamentDetail.concluded);
         }
     }, [tournamentDetail]);
 
@@ -260,7 +265,9 @@ export default function AdminDashboard() {
             setAddTeamSchool(null);
             setAddTeamSchoolSecondary(null);
             setAddTeamSeed("");
-            setAddTeamRegion(null);
+            // I've found it easier to enter teams by region, keeping
+            // region populated as I go
+            // setAddTeamRegion(null);
         } catch (err: any) {
             notifications.show({
                 title: "Failed to Add Team",
@@ -287,10 +294,11 @@ export default function AdminDashboard() {
         try {
             await api.patch(`/api/tournament/${tournament}/`, {
                 start_date: new Date(editStartDate).toISOString(),
+                concluded: editConcluded,
             });
             notifications.show({
                 title: "Success",
-                message: "Tournament start date updated successfully.",
+                message: "Tournament settings updated successfully.",
                 color: "green",
             });
             queryClient.invalidateQueries({ queryKey: ["tournamentDetail", tournament] });
@@ -350,10 +358,10 @@ export default function AdminDashboard() {
             </Group>
 
             {/* SETUP PHASE SECTION */}
-            {(!tournamentDetail || !tournamentDetail.is_locked) && (
+            {tournamentDetail && (
                 <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                     {/* Add Team to Selected Tournament */}
-                    <Paper withBorder p="md" radius="md" shadow="sm">
+                    {!tournamentDetail.is_locked && <Paper withBorder p="md" radius="md" shadow="sm">
                         <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <IconPlus size={20} color="green" /> Add Team to {tournamentDetail?.year || "Selected"} Tournament
                         </Title>
@@ -411,26 +419,35 @@ export default function AdminDashboard() {
                                 </Stack>
                             </form>
                         )}
-                    </Paper>
+                    </Paper>}
 
-                    {/* Edit Tournament Start Date */}
-                    {tournamentDetail && !tournamentDetail.is_locked && (
+                    {/* Edit Tournament Settings */}
+                    {!tournamentDetail.concluded && (
                         <Paper withBorder p="md" radius="md" shadow="sm">
                             <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <IconCalendar size={20} color="blue" /> Edit {tournamentDetail.year} Start Date
+                                <IconCalendar size={20} color="blue" /> Edit {tournamentDetail.year} Settings
                             </Title>
                             <form onSubmit={handleEditStartDate}>
                                 <Stack gap="sm">
                                     <TextInput
                                         label="Start Date & Time (Picks Lock)"
                                         placeholder="Select date and time"
+                                        disabled={tournamentDetail.is_locked}
                                         type="datetime-local"
                                         value={editStartDate}
                                         onChange={(e) => setEditStartDate(e.currentTarget.value)}
                                         required
                                     />
+                                    <Checkbox
+                                        label="Concluded"
+                                        description={!tournamentDetail.is_locked ? "Can't mark a tournament as complete until after start date has passed" : "Mark this tournament as completed"}
+                                        checked={editConcluded}
+                                        onChange={(e) => setEditConcluded(e.currentTarget.checked)}
+                                        disabled={!tournamentDetail.is_locked}
+                                        style={{ cursor: !tournamentDetail.is_locked ? 'not-allowed' : 'pointer' }}
+                                    />
                                     <Button type="submit" loading={editStartDateLoading} color="blue" mt="xs">
-                                        Update Start Date
+                                        Update Settings
                                     </Button>
                                 </Stack>
                             </form>
