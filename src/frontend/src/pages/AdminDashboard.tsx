@@ -22,7 +22,9 @@ import {
     ActionIcon,
     Table,
     Checkbox,
+    Modal,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
     IconInfoCircle,
@@ -71,6 +73,12 @@ export default function AdminDashboard() {
     const [addTeamSeed, setAddTeamSeed] = useState<number | "">("");
     const [addTeamRegion, setAddTeamRegion] = useState<string | null>(null);
     const [addTeamLoading, setAddTeamLoading] = useState(false);
+
+    // Add School modal state
+    const [schoolModalOpened, { open: openSchoolModal, close: closeSchoolModal }] = useDisclosure(false);
+    const [newSchoolName, setNewSchoolName] = useState("");
+    const [newSchoolAbbrev, setNewSchoolAbbrev] = useState("");
+    const [createSchoolLoading, setCreateSchoolLoading] = useState(false);
 
     // Edit Tournament start date form state
     const [editStartDate, setEditStartDate] = useState("");
@@ -279,6 +287,53 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleCreateSchool = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newSchoolName.trim() || !newSchoolAbbrev.trim()) {
+            notifications.show({
+                title: "Validation Error",
+                message: "School Name and Abbreviation are required.",
+                color: "yellow",
+            });
+            return;
+        }
+
+        setCreateSchoolLoading(true);
+        try {
+            const response = await api.post("/api/schools/", {
+                name: newSchoolName.trim(),
+                abbrev: newSchoolAbbrev.trim(),
+            });
+
+            notifications.show({
+                title: "Success",
+                message: `School "${newSchoolName}" created successfully!`,
+                color: "green",
+            });
+
+            // Invalidate schools cache so select can pick it up
+            await queryClient.invalidateQueries({ queryKey: ["schools"] });
+
+            // Automatically select the newly created school
+            if (response.data && response.data.id) {
+                setAddTeamSchool(response.data.id.toString());
+            }
+
+            // Reset states and close modal
+            setNewSchoolName("");
+            setNewSchoolAbbrev("");
+            closeSchoolModal();
+        } catch (err: any) {
+            notifications.show({
+                title: "Failed to Create School",
+                message: formatError(err),
+                color: "red",
+            });
+        } finally {
+            setCreateSchoolLoading(false);
+        }
+    };
+
     const handleEditStartDate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editStartDate) {
@@ -362,9 +417,14 @@ export default function AdminDashboard() {
                 <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                     {/* Add Team to Selected Tournament */}
                     {!tournamentDetail.is_locked && <Paper withBorder p="md" radius="md" shadow="sm">
-                        <Title order={3} mb="sm" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <IconPlus size={20} color="green" /> Add Team to {tournamentDetail?.year || "Selected"} Tournament
-                        </Title>
+                        <Group justify="space-between" align="center" mb="sm">
+                            <Title order={3} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <IconPlus size={20} color="green" /> Add Team to {tournamentDetail?.year || "Selected"} Tournament
+                            </Title>
+                            <Button size="xs" variant="light" color="blue" leftSection={<IconPlus size={14} />} onClick={openSchoolModal}>
+                                New School
+                            </Button>
+                        </Group>
                         {!tournament ? (
                             <Alert color="blue" icon={<IconInfoCircle />}>
                                 Please select a tournament from the header dropdown first.
@@ -633,6 +693,35 @@ export default function AdminDashboard() {
                     </Grid>
                 )}
             </Paper>
+
+            <Modal opened={schoolModalOpened} onClose={closeSchoolModal} title="Add New School" centered>
+                <form onSubmit={handleCreateSchool}>
+                    <Stack gap="sm">
+                        <TextInput
+                            label="School Name"
+                            placeholder="e.g., Michigan"
+                            value={newSchoolName}
+                            onChange={(e) => setNewSchoolName(e.currentTarget.value)}
+                            required
+                        />
+                        <TextInput
+                            label="Abbreviation"
+                            placeholder="e.g., UofM"
+                            value={newSchoolAbbrev}
+                            onChange={(e) => setNewSchoolAbbrev(e.currentTarget.value)}
+                            required
+                        />
+                        <Group justify="flex-end" mt="md">
+                            <Button variant="outline" onClick={closeSchoolModal}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" color="green" loading={createSchoolLoading}>
+                                Create School
+                            </Button>
+                        </Group>
+                    </Stack>
+                </form>
+            </Modal>
         </Stack>
     );
 }

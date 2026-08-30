@@ -146,7 +146,7 @@ class EntryCreateView(generics.CreateAPIView):
             update_tournament_scores(serializer.instance.tournament_id)
 
 
-class SchoolListView(generics.ListAPIView):
+class SchoolListView(generics.ListCreateAPIView):
     serializer_class = serializers.SchoolSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdminOrReadOnly,)
     queryset = models.School.objects.all().order_by("name")
