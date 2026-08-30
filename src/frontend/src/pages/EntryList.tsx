@@ -2,7 +2,7 @@ import { Title, Stack, Alert, Badge, Card, Divider, Grid, Group, ThemeIcon, Text
 import { useOutletContext } from "react-router-dom";
 import EntryTable from "../tables/EntryTable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import dayjs from 'dayjs';
 import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
@@ -19,7 +19,7 @@ function EntryList() {
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
         queryKey: ['tournamentDetail', tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/`).then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.detail(tournament)).then(res => res.data),
         enabled: !!tournament,
     });
 

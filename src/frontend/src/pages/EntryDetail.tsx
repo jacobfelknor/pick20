@@ -2,7 +2,7 @@ import { Badge, Button, Card, Divider, Grid, Group, Stack, Text, ThemeIcon, Titl
 import { IconArrowLeft, IconCalculator, IconChartBar, IconCircleCheck, IconCircleX, IconEdit, IconTournament, IconTrash, IconTrophy, IconUser } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import PicksTable from "../tables/PicksTable";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EntryFormModal } from "../forms/EntryFormModal";
 import { useDisclosure } from "@mantine/hooks";
@@ -22,20 +22,20 @@ const EntryDetail = () => {
 
     const { data: entryDetail, isLoading } = useQuery({
         queryKey: ['entryDetail', id],
-        queryFn: () => api.get(`/api/entries/${id}/`).then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.entries.detail(id!)).then(res => res.data),
         enabled: !!id,
     });
 
     const { data: currentUser } = useQuery({
         queryKey: ['currentUser'],
-        queryFn: () => api.get('/api/auth/user/').then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.auth.user).then(res => res.data),
     });
 
     const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
 
     const togglePaidMutation = useMutation({
         mutationFn: () =>
-            api.patch(`/api/entries/${id}/`, { paid: !entryDetail?.paid }),
+            api.patch(API_ENDPOINTS.entries.detail(id!), { paid: !entryDetail?.paid }),
         onSuccess: (res) => {
             // update this entryDetail's data to the response immediately
             queryClient.setQueryData(['entryDetail', id], res.data);
@@ -58,7 +58,7 @@ const EntryDetail = () => {
 
     const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
         queryKey: ['tournamentDetail', entryDetail?.tournament],
-        queryFn: () => api.get(`/api/tournament/${entryDetail?.tournament}/`).then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.detail(entryDetail?.tournament)).then(res => res.data),
         enabled: !!entryDetail?.tournament,
     });
     isTournamentDetailLoading; // trick linter for now. I want to remember this is available
@@ -83,7 +83,7 @@ const EntryDetail = () => {
             closeOnConfirm: false,
             onConfirm: () => {
                 // Your API logic here
-                api.delete(`/api/entries/${entryDetail?.id}/`).then(() => {
+                api.delete(API_ENDPOINTS.entries.detail(entryDetail?.id)).then(() => {
                     modals.closeAll();
                     navigate("/entries");
                     notifications.show({

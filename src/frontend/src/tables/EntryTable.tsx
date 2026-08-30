@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
@@ -17,20 +17,20 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
 
     const { data: entries, isLoading } = useQuery({
         queryKey: ['entries', tournament, onlyMyEntries],
-        queryFn: () => api.get(`/api/tournament/${tournament}/entries/`, { params: { onlyMyEntries: onlyMyEntries } }).then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.entries(tournament), { params: { onlyMyEntries: onlyMyEntries } }).then(res => res.data),
         enabled: !!tournament,
     });
 
     const { data: currentUser } = useQuery({
         queryKey: ['currentUser'],
-        queryFn: () => api.get('/api/auth/user/').then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.auth.user).then(res => res.data),
     });
 
     const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
 
     const togglePaidMutation = useMutation({
         mutationFn: ({ id, paid }: { id: number, paid: boolean }) =>
-            api.patch(`/api/entries/${id}/`, { paid: !paid }),
+            api.patch(API_ENDPOINTS.entries.detail(id), { paid: !paid }),
         onSuccess: (res, variables) => {
 
             // instead of invalidating the entire table's query, update 

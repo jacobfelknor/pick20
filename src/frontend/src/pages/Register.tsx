@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form"; // Added this
 import {
@@ -88,7 +88,7 @@ function Register() {
         try {
             // We destructure confirmPassword out so we don't send it to the API
             const { confirmPassword, ...registerData } = values;
-            await api.post("/api/auth/register/", registerData);
+            await api.post(API_ENDPOINTS.auth.register, registerData);
             notifications.show({
                 title: 'Success!',
                 message: "Registration successful! Please login.",

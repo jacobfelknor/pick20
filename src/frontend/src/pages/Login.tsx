@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form"; // Added
 import {
@@ -31,7 +31,7 @@ function Login() {
         setLoading(true);
 
         try {
-            const res = await api.post("/api/auth/token/", values);
+            const res = await api.post(API_ENDPOINTS.auth.token, values);
             localStorage.setItem("access", res.data.access);
             localStorage.setItem("refresh", res.data.refresh);
             navigate("/entries");

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconTrophy } from '@tabler/icons-react';
-import api, { logOutUser } from '../api';
+import api, { logOutUser, API_ENDPOINTS } from '../api';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
@@ -32,7 +32,7 @@ export function AppLayout() {
 
     setCreateTournamentLoading(true);
     try {
-      const response = await api.post("/api/tournament/", {
+      const response = await api.post(API_ENDPOINTS.tournaments.list, {
         year: Number(newYear),
         start_date: new Date(newStartDate).toISOString(),
       });
@@ -73,7 +73,7 @@ export function AppLayout() {
   const { data, isLoading } = useQuery({
     queryKey: ['tournaments'],
     // Extract the actual data from the Axios response object
-    queryFn: () => api.get("/api/tournament/").then((res) => res.data),
+    queryFn: () => api.get(API_ENDPOINTS.tournaments.list).then((res) => res.data),
     // Transform the array for Mantine's requirements
     select: (items: any[]) =>
       items.map((t) => ({
@@ -84,7 +84,7 @@ export function AppLayout() {
 
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
-    queryFn: () => api.get('/api/auth/user/').then(res => res.data),
+    queryFn: () => api.get(API_ENDPOINTS.auth.user).then(res => res.data),
   });
 
   // Fallback: If no selection exists in local storage, select the first one from API
@@ -99,7 +99,7 @@ export function AppLayout() {
 
   const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
     queryKey: ['tournamentDetail', tournament],
-    queryFn: () => api.get(`/api/tournament/${tournament}/`).then(res => res.data),
+    queryFn: () => api.get(API_ENDPOINTS.tournaments.detail(tournament)).then(res => res.data),
     enabled: !!tournament,
   });
   isTournamentDetailLoading; // trick linter for now. I want to remember this is available

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash";
@@ -10,7 +10,7 @@ export default function TeamsTable({ tournament }: { tournament: string }) {
 
     const { data: teams, isLoading } = useQuery({
         queryKey: ['teams', tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/teams/`).then(res => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.teams(tournament)).then(res => res.data),
         enabled: !!tournament,
     });
 

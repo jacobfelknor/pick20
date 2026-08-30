@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { useForm } from "@mantine/form";
 import {
     TextInput,
@@ -52,7 +52,7 @@ function Profile() {
         const fetchUserData = async () => {
             try {
                 // Adjust this endpoint based on your backend (e.g., /api/auth/user/ or /api/profile/)
-                const response = await api.get("/api/auth/user/");
+                const response = await api.get(API_ENDPOINTS.auth.user);
                 form.setValues({
                     username: response.data.username,
                     email: response.data.email,
@@ -85,7 +85,7 @@ function Profile() {
                     last_name: values.last_name
                 };
 
-            await api.patch("/api/auth/user/", payload);
+            await api.patch(API_ENDPOINTS.auth.user, payload);
 
             notifications.show({
                 title: 'Success!',

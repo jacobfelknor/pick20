@@ -35,7 +35,7 @@ import {
     IconTrash,
     IconCalendar,
 } from "@tabler/icons-react";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 
 function formatError(err: any): string {
     const data = err.response?.data;
@@ -88,13 +88,13 @@ export default function AdminDashboard() {
     // 1. Auth Query (Verify if Admin)
     const { data: userProfile, isLoading: isUserLoading } = useQuery({
         queryKey: ["userProfile"],
-        queryFn: () => api.get("/api/auth/user/").then((res) => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.auth.user).then((res) => res.data),
     });
 
     // 2. Fetch Selected Tournament Detail
     const { data: tournamentDetail } = useQuery({
         queryKey: ["tournamentDetail", tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/`).then((res) => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.detail(tournament)).then((res) => res.data),
         enabled: !!tournament,
     });
 
@@ -113,13 +113,13 @@ export default function AdminDashboard() {
     // 3. Fetch Schools
     const { data: schools } = useQuery({
         queryKey: ["schools"],
-        queryFn: () => api.get("/api/schools/").then((res) => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.schools.list).then((res) => res.data),
     });
 
     // 4. Fetch Teams
     const { data: teams, isLoading: isTeamsLoading } = useQuery({
         queryKey: ["teams", tournament],
-        queryFn: () => api.get(`/api/tournament/${tournament}/teams/`).then((res) => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.teams(tournament)).then((res) => res.data),
         enabled: !!tournament,
     });
 
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
     // Mutations
     const updateTeamMutation = useMutation({
         mutationFn: ({ teamId, data }: { teamId: number; data: any; silent?: boolean }) =>
-            api.patch(`/api/tournament/${tournament}/teams/${teamId}/`, data),
+            api.patch(API_ENDPOINTS.tournaments.teamDetail(tournament, teamId), data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["teams", tournament] });
             queryClient.invalidateQueries({ queryKey: ["tournamentDetail", tournament] });
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
 
     const deleteTeamMutation = useMutation({
         mutationFn: (teamId: number) =>
-            api.delete(`/api/tournament/${tournament}/teams/${teamId}/`),
+            api.delete(API_ENDPOINTS.tournaments.teamDetail(tournament, teamId)),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["teams", tournament] });
             queryClient.invalidateQueries({ queryKey: ["tournamentDetail", tournament] });
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
 
         setAddTeamLoading(true);
         try {
-            await api.post(`/api/tournament/${tournament}/teams/`, {
+            await api.post(API_ENDPOINTS.tournaments.teams(tournament), {
                 school: Number(addTeamSchool),
                 seed: Number(addTeamSeed),
                 region: addTeamRegion,
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
 
         setCreateSchoolLoading(true);
         try {
-            const response = await api.post("/api/schools/", {
+            const response = await api.post(API_ENDPOINTS.schools.list, {
                 name: newSchoolName.trim(),
                 abbrev: newSchoolAbbrev.trim(),
             });
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
 
         setEditStartDateLoading(true);
         try {
-            await api.patch(`/api/tournament/${tournament}/`, {
+            await api.patch(API_ENDPOINTS.tournaments.detail(tournament), {
                 start_date: new Date(editStartDate).toISOString(),
                 concluded: editConcluded,
             });

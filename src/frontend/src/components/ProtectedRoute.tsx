@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useState, useEffect, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
-import api from "../api";
+import api, { API_ENDPOINTS } from "../api";
 import { Loader } from "@mantine/core";
 
 interface ProtectedRouteProps {
@@ -45,7 +45,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         const refresh = localStorage.getItem("refresh");
         try {
             // We call the direct axios/api refresh here
-            const res = await api.post("/api/auth/token/refresh/", { refresh });
+            const res = await api.post(API_ENDPOINTS.auth.refresh, { refresh });
             if (res.status === 200) {
                 localStorage.setItem("access", res.data.access);
                 setIsAuthorized(true);

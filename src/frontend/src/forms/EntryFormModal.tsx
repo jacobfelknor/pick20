@@ -3,7 +3,7 @@ import { Modal, Button, Group, Text, Stack, TextInput } from '@mantine/core';
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IconCheck, IconDeviceFloppy } from '@tabler/icons-react';
-import api from '../api';
+import api, { API_ENDPOINTS } from '../api';
 import { notifications } from '@mantine/notifications';
 import { sortBy } from 'lodash';
 import { useForm } from '@mantine/form';
@@ -32,7 +32,7 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
 
     const { data: teams, isLoading } = useQuery({
         queryKey: ['tournament-teams', tournamentId],
-        queryFn: () => api.get(`/api/tournament/${tournamentId}/teams/`).then((res) => res.data),
+        queryFn: () => api.get(API_ENDPOINTS.tournaments.teams(tournamentId)).then((res) => res.data),
         enabled: opened,
     });
 
@@ -65,8 +65,8 @@ export function EntryFormModal({ opened, onClose, tournamentId, entry }: EntryFo
             };
 
             return entry
-                ? api.patch(`/api/entries/${entry.id}/`, payload)
-                : api.post(`/api/entries/`, payload);
+                ? api.patch(API_ENDPOINTS.entries.detail(entry.id), payload)
+                : api.post(API_ENDPOINTS.entries.list, payload);
         },
         // The "What happened?" logic
         onSuccess: () => {

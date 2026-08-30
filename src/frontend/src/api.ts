@@ -14,6 +14,29 @@ export const logOutUser = () => {
   localStorage.removeItem("only-my-entries"); // always default to show all entries
 }
 
+export const API_ENDPOINTS = {
+  auth: {
+    token: "/api/auth/token/",
+    refresh: "/api/auth/token/refresh/",
+    user: "/api/auth/user/",
+    register: "/api/auth/register/",
+  },
+  tournaments: {
+    list: "/api/tournament/",
+    detail: (id: string | number) => `/api/tournament/${id}/`,
+    teams: (id: string | number) => `/api/tournament/${id}/teams/`,
+    teamDetail: (tournamentId: string | number, teamId: string | number) => `/api/tournament/${tournamentId}/teams/${teamId}/`,
+    entries: (id: string | number) => `/api/tournament/${id}/entries/`,
+  },
+  schools: {
+    list: "/api/schools/",
+  },
+  entries: {
+    list: "/api/entries/",
+    detail: (id: string | number) => `/api/entries/${id}/`,
+  },
+} as const;
+
 if (import.meta.env.DEV) {
   console.log("🛠️ API running in Development Mode:", BASE_URL);
 } else {
@@ -43,8 +66,8 @@ api.interceptors.request.use(
 
 // 4. Response Interceptor (The Refresh Logic)
 // Define your endpoints clearly to avoid substring matching issues
-const LOGIN_URL = "/api/auth/token/";
-const REFRESH_URL = "/api/auth/token/refresh/";
+const LOGIN_URL = API_ENDPOINTS.auth.token;
+const REFRESH_URL = API_ENDPOINTS.auth.refresh;
 
 api.interceptors.response.use(
   (response) => response,
