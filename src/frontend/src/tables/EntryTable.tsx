@@ -10,7 +10,7 @@ import { IconSearch } from "@tabler/icons-react";
 import { useLocalStorage } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { ROUTES } from "../routes";
-import { STORAGE_KEYS } from "../storageKeys";
+import { LOCAL_STORAGE_KEYS } from "../localStorageKeys";
 
 
 export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries }: { tournament: string, tournamentDetail: any, onlyMyEntries: boolean }) {
@@ -77,7 +77,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
 
     const PAGE_SIZES = [15, 25, 50, 100];
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useLocalStorage({ key: STORAGE_KEYS.ENTRIES_PAGE_SIZE, defaultValue: PAGE_SIZES[0] });
+    const [pageSize, setPageSize] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.ENTRIES_PAGE_SIZE, defaultValue: PAGE_SIZES[0] });
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [paidFilter, setPaidFilter] = useState<string>('all');
     const usersWithEntries = useMemo(() => {

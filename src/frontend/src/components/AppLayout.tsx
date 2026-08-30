@@ -7,12 +7,12 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconTrophy } from '@tabler/icons-react';
 import api, { logOutUser, API_ENDPOINTS } from '../api';
 import { ROUTES } from '../routes';
-import { STORAGE_KEYS } from '../storageKeys';
+import { LOCAL_STORAGE_KEYS } from '../localStorageKeys';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
   const [createModalOpened, { open: openCreateModal, close: closeCreateModal }] = useDisclosure(false);
-  const [tournament, setTournament] = useLocalStorage({ key: STORAGE_KEYS.SELECTED_TOURNAMENT, defaultValue: "" })
+  const [tournament, setTournament] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.SELECTED_TOURNAMENT, defaultValue: "" })
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();

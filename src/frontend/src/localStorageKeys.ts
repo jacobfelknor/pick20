@@ -1,4 +1,4 @@
-export const STORAGE_KEYS = {
+export const LOCAL_STORAGE_KEYS = {
     ACCESS_TOKEN: "access",
     REFRESH_TOKEN: "refresh",
     SELECTED_TOURNAMENT: "selected-tournament",
