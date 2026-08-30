@@ -93,7 +93,7 @@ export function AppLayout() {
     if (!tournament && data && data.length > 0) {
       const firstId = data[0].value;
       setTournament(firstId);
-      localStorage.setItem('selectedTournament', firstId);
+      localStorage.setItem('selected-tournament', firstId);
     }
   }, [data, tournament]);
 
