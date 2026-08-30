@@ -10,10 +10,10 @@ const DEV_URL = "http://localhost:8000";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
 
 export const logOutUser = () => {
-  localStorage.removeItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
-  localStorage.removeItem(LOCAL_STORAGE_KEYS.SELECTED_TOURNAMENT); // always default to newest tournament on new login
-  localStorage.removeItem(LOCAL_STORAGE_KEYS.ONLY_MY_ENTRIES); // always default to show all entries
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.access_token);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.refresh_token);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.selected_tournament); // always default to newest tournament on new login
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.only_my_entries); // always default to show all entries
 }
 
 export const API_ENDPOINTS = {
@@ -57,7 +57,7 @@ const api: AxiosInstance = axios.create({
 // 3. Request Interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.access_token);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -97,7 +97,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+        const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refresh_token);
         if (!refreshToken) throw new Error("No refresh token available");
 
         // Use standard axios to avoid interceptor loops
@@ -107,7 +107,7 @@ api.interceptors.response.use(
         );
 
         const { access } = response.data;
-        localStorage.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, access);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.access_token, access);
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access}`;

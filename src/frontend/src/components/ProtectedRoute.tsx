@@ -16,7 +16,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const token = localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+            const token = localStorage.getItem(LOCAL_STORAGE_KEYS.access_token);
 
             if (!token) {
                 setIsAuthorized(false);
@@ -44,12 +44,12 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     }, []);
 
     const refreshToken = async () => {
-        const refresh = localStorage.getItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+        const refresh = localStorage.getItem(LOCAL_STORAGE_KEYS.refresh_token);
         try {
             // We call the direct axios/api refresh here
             const res = await api.post(API_ENDPOINTS.auth.refresh, { refresh });
             if (res.status === 200) {
-                localStorage.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, res.data.access);
+                localStorage.setItem(LOCAL_STORAGE_KEYS.access_token, res.data.access);
                 setIsAuthorized(true);
             } else {
                 setIsAuthorized(false);

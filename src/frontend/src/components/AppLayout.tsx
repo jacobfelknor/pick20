@@ -12,7 +12,7 @@ import { LOCAL_STORAGE_KEYS } from '../localStorageKeys';
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
   const [createModalOpened, { open: openCreateModal, close: closeCreateModal }] = useDisclosure(false);
-  const [tournament, setTournament] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.SELECTED_TOURNAMENT, defaultValue: "" })
+  const [tournament, setTournament] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.selected_tournament, defaultValue: "" })
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();

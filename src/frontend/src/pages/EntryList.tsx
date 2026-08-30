@@ -14,7 +14,7 @@ import { useClockCountDown } from '@gfazioli/mantine-clock';
 function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
-    const [onlyMyEntries, setOnlyMyEntries] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.ONLY_MY_ENTRIES, defaultValue: false });
+    const [onlyMyEntries, setOnlyMyEntries] = useLocalStorage({ key: LOCAL_STORAGE_KEYS.only_my_entries, defaultValue: false });
     const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
     const queryClient = useQueryClient();
 

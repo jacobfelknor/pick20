@@ -34,8 +34,8 @@ function Login() {
 
         try {
             const res = await api.post(API_ENDPOINTS.auth.token, values);
-            localStorage.setItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN, res.data.access);
-            localStorage.setItem(LOCAL_STORAGE_KEYS.REFRESH_TOKEN, res.data.refresh);
+            localStorage.setItem(LOCAL_STORAGE_KEYS.access_token, res.data.access);
+            localStorage.setItem(LOCAL_STORAGE_KEYS.refresh_token, res.data.refresh);
             navigate(ROUTES.entries);
         } catch (error: any) {
             // 2. Map backend "Detail" or "Non-field" errors to the form
@@ -54,7 +54,7 @@ function Login() {
     // Redirect logic
     // Could show a "checking if you're logged in" message here too
     useEffect(() => {
-        if (localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN)) {
+        if (localStorage.getItem(LOCAL_STORAGE_KEYS.access_token)) {
             navigate(ROUTES.entries);
         }
     }, [navigate]);
