@@ -98,12 +98,20 @@ export function AppLayout() {
   }, [data, tournament]);
 
 
-  const { data: tournamentDetail, isLoading: isTournamentDetailLoading } = useQuery({
+  const { data: tournamentDetail, isLoading: isTournamentDetailLoading, isError: isTournamentDetailError } = useQuery({
     queryKey: ['tournamentDetail', tournament],
     queryFn: () => api.get(API_ENDPOINTS.tournaments.detail(tournament)).then(res => res.data),
     enabled: !!tournament,
   });
   isTournamentDetailLoading; // trick linter for now. I want to remember this is available
+
+  // Reset to fallback if the tournament detail query above fails (e.g. bogus/invalid ID in localStorage)
+  // This triggers the Fallback effect to select the first tournament from the API list
+  useEffect(() => {
+    if (isTournamentDetailError) {
+      setTournament("");
+    }
+  }, [isTournamentDetailError, setTournament]);
 
 
   // consider using the useLocalStorage() hook from @mantine/hooks
