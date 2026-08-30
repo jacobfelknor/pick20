@@ -9,6 +9,7 @@ import { MultiSelect, Checkbox, Select, Loader } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useLocalStorage } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { ROUTES } from "../routes";
 
 
 export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries }: { tournament: string, tournamentDetail: any, onlyMyEntries: boolean }) {
@@ -208,7 +209,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
                 // trick linter that these are used, for now. I'd rather see they're available
                 index;
                 event;
-                navigate(`/entries/${record.id}`);
+                navigate(ROUTES.entryDetail(record.id));
             }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}

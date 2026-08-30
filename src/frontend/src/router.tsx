@@ -9,19 +9,20 @@ import Profile from "./pages/Profile";
 import TeamList from "./pages/TeamList";
 import Rules from "./pages/Rules";
 import AdminDashboard from "./pages/AdminDashboard";
+import { ROUTES } from "./routes";
 
 const router = createBrowserRouter([
   // 1. PUBLIC ROUTES
   {
-    path: "/login",
+    path: ROUTES.login,
     element: <Login />,
   },
   {
-    path: "/register",
+    path: ROUTES.register,
     element: <Register />,
   },
   {
-    path: "/register/rules",
+    path: ROUTES.registerRules,
     element: <Rules />
   },
 
@@ -35,27 +36,27 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/entries",
+        path: ROUTES.entries,
         element: <EntryList />,
       },
       {
-        path: "/entries/:id",
+        path: ROUTES.entryDetail(":id"),
         element: <EntryDetail />
       },
       {
-        path: "/profile",
+        path: ROUTES.profile,
         element: <Profile />,
       },
       {
-        path: "/teams",
+        path: ROUTES.teams,
         element: <TeamList />,
       },
       {
-        path: "/rules",
+        path: ROUTES.rules,
         element: <Rules />,
       },
       {
-        path: "/admin/dashboard",
+        path: ROUTES.adminDashboard,
         element: <AdminDashboard />,
       },
     ],
@@ -64,7 +65,7 @@ const router = createBrowserRouter([
   // 3. CATCH-ALL
   {
     path: "*",
-    element: <Navigate to="/login" />,
+    element: <Navigate to={ROUTES.login} />,
   },
 ]);
 

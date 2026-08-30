@@ -15,6 +15,7 @@ import {
 } from '@mantine/core';
 import { IconTrophy, IconBallBasketball, IconCoin, IconAlertCircle } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../routes';
 
 
 
@@ -155,7 +156,7 @@ export default function Rules() {
                     </section>
                 </Stack>
 
-                {location.pathname.includes('/register') &&
+                {location.pathname.includes(ROUTES.register) &&
                     <>
                         <Divider mt="md" />
 
@@ -164,13 +165,13 @@ export default function Rules() {
                                 <Button
                                     variant="filled"
                                     color="blue"
-                                    onClick={() => navigate('/register')}
+                                    onClick={() => navigate(ROUTES.register)}
                                 >
                                     Register
                                 </Button>
 
                                 <Button
-                                    onClick={() => navigate('/login')}
+                                    onClick={() => navigate(ROUTES.login)}
                                 >
                                     Sign In
                                 </Button>

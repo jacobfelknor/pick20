@@ -3,6 +3,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import api, { API_ENDPOINTS } from "../api";
 import { Loader } from "@mantine/core";
+import { ROUTES } from "../routes";
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -15,7 +16,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     useEffect(() => {
         const checkAuth = async () => {
             const token = localStorage.getItem("access");
-            
+
             if (!token) {
                 setIsAuthorized(false);
                 return;
@@ -64,7 +65,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         return <Loader color="blue" />;
     }
 
-    return isAuthorized ? <>{children}</> : <Navigate to="/login" />;
+    return isAuthorized ? <>{children}</> : <Navigate to={ROUTES.login} />;
 }
 
 export default ProtectedRoute;

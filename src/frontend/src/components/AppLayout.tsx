@@ -6,6 +6,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconTrophy } from '@tabler/icons-react';
 import api, { logOutUser, API_ENDPOINTS } from '../api';
+import { ROUTES } from '../routes';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
@@ -61,7 +62,7 @@ export function AppLayout() {
 
   const handleLogout = () => {
     logOutUser();
-    navigate('/login');
+    navigate(ROUTES.login);
   };
 
   // Helper to handle both closing and navigating
@@ -112,10 +113,10 @@ export function AppLayout() {
     // if we're not on an teams view, switch back to the entries table.
     // it only makes sense to see the same page after switching years 
     // if the object can span tournaments - right now that is only the teams list
-    if (!(location.pathname.includes('/teams') || location.pathname.includes('/admin/dashboard'))) {
-      navigate("/entries")
+    if (!(location.pathname.includes(ROUTES.teams) || location.pathname.includes(ROUTES.adminDashboard))) {
+      navigate(ROUTES.entries)
     }
-  }
+  };
 
 
   return (
@@ -177,30 +178,30 @@ export function AppLayout() {
           </Text>
           <NavLink
             label={tournamentDetail?.is_locked ? "Standings" : "Entries"}
-            active={location.pathname.includes('/entries')}
-            onClick={() => handleNavigate('/entries')}
+            active={location.pathname.includes(ROUTES.entries)}
+            onClick={() => handleNavigate(ROUTES.entries)}
           />
           {/* TODO: add schools */}
           <NavLink
             label="Teams"
-            active={location.pathname === '/teams'}
-            onClick={() => handleNavigate('/teams')}
+            active={location.pathname === ROUTES.teams}
+            onClick={() => handleNavigate(ROUTES.teams)}
           />
           <NavLink
             label="Rules"
-            active={location.pathname === '/rules'}
-            onClick={() => handleNavigate('/rules')}
+            active={location.pathname === ROUTES.rules}
+            onClick={() => handleNavigate(ROUTES.rules)}
           />
           <NavLink
             label="Profile"
-            active={location.pathname === '/profile'}
-            onClick={() => handleNavigate('/profile')}
+            active={location.pathname === ROUTES.profile}
+            onClick={() => handleNavigate(ROUTES.profile)}
           />
           {userProfile && (userProfile.is_staff || userProfile.is_superuser) && (
             <NavLink
               label="Admin Dashboard"
-              active={location.pathname === '/admin/dashboard'}
-              onClick={() => handleNavigate('/admin/dashboard')}
+              active={location.pathname === ROUTES.adminDashboard}
+              onClick={() => handleNavigate(ROUTES.adminDashboard)}
             />
           )}
         </AppShell.Section>

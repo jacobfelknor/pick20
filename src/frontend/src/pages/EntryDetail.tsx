@@ -8,6 +8,7 @@ import { EntryFormModal } from "../forms/EntryFormModal";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from '@mantine/modals';
 import { notifications } from "@mantine/notifications";
+import { ROUTES } from "../routes";
 
 
 const EntryDetail = () => {
@@ -85,7 +86,7 @@ const EntryDetail = () => {
                 // Your API logic here
                 api.delete(API_ENDPOINTS.entries.detail(entryDetail?.id)).then(() => {
                     modals.closeAll();
-                    navigate("/entries");
+                    navigate(ROUTES.entries);
                     notifications.show({
                         title: 'Deleted!',
                         message: 'Entry successfully deleted.',
@@ -106,7 +107,7 @@ const EntryDetail = () => {
             {/* 1. The Back Button */}
             <Button
                 leftSection={<IconArrowLeft size={14} />}
-                onClick={() => navigate("/entries")}
+                onClick={() => navigate(ROUTES.entries)}
                 variant="filled"
             >
                 Back to {tournamentDetail?.is_locked ? 'Standings' : 'Entries'}

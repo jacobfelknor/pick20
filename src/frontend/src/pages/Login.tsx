@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api, { API_ENDPOINTS } from "../api";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form"; // Added
+import { ROUTES } from "../routes";
 import {
     TextInput,
     PasswordInput,
@@ -34,7 +35,7 @@ function Login() {
             const res = await api.post(API_ENDPOINTS.auth.token, values);
             localStorage.setItem("access", res.data.access);
             localStorage.setItem("refresh", res.data.refresh);
-            navigate("/entries");
+            navigate(ROUTES.entries);
         } catch (error: any) {
             // 2. Map backend "Detail" or "Non-field" errors to the form
             // DRF SimpleJWT usually returns { "detail": "No active account found..." }
@@ -53,7 +54,7 @@ function Login() {
     // Could show a "checking if you're logged in" message here too
     useEffect(() => {
         if (localStorage.getItem("access")) {
-            navigate("/entries");
+            navigate(ROUTES.entries);
         }
     }, [navigate]);
 
@@ -64,12 +65,12 @@ function Login() {
                 <Title order={2} ta="center">Login to Felknor's Pick20</Title>
                 <Text color="dimmed" size="sm" ta="center">
                     Don't have an account yet?{' '}
-                    <Anchor size="sm" component="button" onClick={() => navigate("/register")}>
+                    <Anchor size="sm" component="button" onClick={() => navigate(ROUTES.register)}>
                         Create account
                     </Anchor>
                 </Text>
                 <Text color="dimmed" size="sm" mt={5}>
-                    <Anchor size="sm" component="button" onClick={() => navigate("/register/rules")}>
+                    <Anchor size="sm" component="button" onClick={() => navigate(ROUTES.registerRules)}>
                         View Rules
                     </Anchor>
                 </Text>

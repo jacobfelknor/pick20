@@ -2,6 +2,7 @@ import { useState } from "react";
 import api, { API_ENDPOINTS } from "../api";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form"; // Added this
+import { ROUTES } from "../routes";
 import {
     TextInput,
     PasswordInput,
@@ -94,7 +95,7 @@ function Register() {
                 message: "Registration successful! Please login.",
                 color: 'green',
             });
-            navigate("/login");
+            navigate(ROUTES.login);
         } catch (error: any) {
             const responseData = error.response?.data;
             form.setErrors(responseData);
@@ -113,12 +114,12 @@ function Register() {
             <Title>Create an Account</Title>
             <Text color="dimmed" size="sm" mt={5}>
                 Already have an account?{' '}
-                <Anchor size="sm" component="button" onClick={() => navigate("/login")}>
+                <Anchor size="sm" component="button" onClick={() => navigate(ROUTES.login)}>
                     Login
                 </Anchor>
             </Text>
             <Text color="dimmed" size="sm" mt={5}>
-                <Anchor size="sm" component="button" onClick={() => navigate("/register/rules")}>
+                <Anchor size="sm" component="button" onClick={() => navigate(ROUTES.registerRules)}>
                     View Rules
                 </Anchor>
             </Text>

@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, AxiosError } from "axios";
+import { ROUTES } from "./routes";
 
 const DEV_URL = "http://localhost:8000";
 // if you want to debug frontend against prod db
@@ -79,7 +80,7 @@ api.interceptors.response.use(
     // If the call that failed WAS the refresh attempt, the session is dead.
     if (url.includes(REFRESH_URL)) {
       logOutUser();
-      window.location.href = "/login";
+      window.location.href = ROUTES.login;
       return Promise.reject(error);
     }
 
@@ -116,7 +117,7 @@ api.interceptors.response.use(
         // This catch block is actually a backup now, 
         // as the "REFRESH_URL" check at the top handles most cases.
         logOutUser();
-        window.location.href = "/login";
+        window.location.href = ROUTES.login;
         return Promise.reject(refreshError);
       }
     }
