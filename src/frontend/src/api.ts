@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, AxiosError } from "axios";
 import { ROUTES } from "./routes";
+import { STORAGE_KEYS } from "./storageKeys";
 
 const DEV_URL = "http://localhost:8000";
 // if you want to debug frontend against prod db
@@ -9,10 +10,10 @@ const DEV_URL = "http://localhost:8000";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
 
 export const logOutUser = () => {
-  localStorage.removeItem("access");
-  localStorage.removeItem("refresh");
-  localStorage.removeItem("selected-tournament"); // always default to newest tournament on new login
-  localStorage.removeItem("only-my-entries"); // always default to show all entries
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.SELECTED_TOURNAMENT); // always default to newest tournament on new login
+  localStorage.removeItem(STORAGE_KEYS.ONLY_MY_ENTRIES); // always default to show all entries
 }
 
 export const API_ENDPOINTS = {
@@ -56,7 +57,7 @@ const api: AxiosInstance = axios.create({
 // 3. Request Interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -96,7 +97,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh");
+        const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
         if (!refreshToken) throw new Error("No refresh token available");
 
         // Use standard axios to avoid interceptor loops
@@ -106,7 +107,7 @@ api.interceptors.response.use(
         );
 
         const { access } = response.data;
-        localStorage.setItem("access", access);
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access}`;

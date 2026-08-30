@@ -3,6 +3,7 @@ import api, { API_ENDPOINTS } from "../api";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@mantine/form"; // Added
 import { ROUTES } from "../routes";
+import { STORAGE_KEYS } from "../storageKeys";
 import {
     TextInput,
     PasswordInput,
@@ -33,8 +34,8 @@ function Login() {
 
         try {
             const res = await api.post(API_ENDPOINTS.auth.token, values);
-            localStorage.setItem("access", res.data.access);
-            localStorage.setItem("refresh", res.data.refresh);
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, res.data.access);
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, res.data.refresh);
             navigate(ROUTES.entries);
         } catch (error: any) {
             // 2. Map backend "Detail" or "Non-field" errors to the form
@@ -53,7 +54,7 @@ function Login() {
     // Redirect logic
     // Could show a "checking if you're logged in" message here too
     useEffect(() => {
-        if (localStorage.getItem("access")) {
+        if (localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
             navigate(ROUTES.entries);
         }
     }, [navigate]);

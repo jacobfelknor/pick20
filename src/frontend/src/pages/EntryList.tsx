@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import EntryTable from "../tables/EntryTable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api, { API_ENDPOINTS } from "../api";
+import { STORAGE_KEYS } from "../storageKeys";
 import dayjs from 'dayjs';
 import { IconCalendar, IconCircleCheck, IconInfoCircle, IconPlus, IconTrophy, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
@@ -13,7 +14,7 @@ import { useClockCountDown } from '@gfazioli/mantine-clock';
 function EntryList() {
     // context passed from appshell outlet
     const { tournament } = useOutletContext<any>();
-    const [onlyMyEntries, setOnlyMyEntries] = useLocalStorage({ key: 'only-my-entries', defaultValue: false });
+    const [onlyMyEntries, setOnlyMyEntries] = useLocalStorage({ key: STORAGE_KEYS.ONLY_MY_ENTRIES, defaultValue: false });
     const [entryCreateOpened, { open: openEntryCreateModal, close: closeEntryCreateModal }] = useDisclosure(false);
     const queryClient = useQueryClient();
 

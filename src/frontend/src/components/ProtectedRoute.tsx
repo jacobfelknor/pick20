@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import api, { API_ENDPOINTS } from "../api";
 import { Loader } from "@mantine/core";
 import { ROUTES } from "../routes";
+import { STORAGE_KEYS } from "../storageKeys";
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -15,7 +16,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const token = localStorage.getItem("access");
+            const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
             if (!token) {
                 setIsAuthorized(false);
@@ -43,12 +44,12 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     }, []);
 
     const refreshToken = async () => {
-        const refresh = localStorage.getItem("refresh");
+        const refresh = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
         try {
             // We call the direct axios/api refresh here
             const res = await api.post(API_ENDPOINTS.auth.refresh, { refresh });
             if (res.status === 200) {
-                localStorage.setItem("access", res.data.access);
+                localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, res.data.access);
                 setIsAuthorized(true);
             } else {
                 setIsAuthorized(false);

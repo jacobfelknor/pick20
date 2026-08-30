@@ -7,11 +7,12 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconTrophy } from '@tabler/icons-react';
 import api, { logOutUser, API_ENDPOINTS } from '../api';
 import { ROUTES } from '../routes';
+import { STORAGE_KEYS } from '../storageKeys';
 
 export function AppLayout() {
   const [burgerOpened, { toggle: burgerToggle, close: burgerClose }] = useDisclosure();
   const [createModalOpened, { open: openCreateModal, close: closeCreateModal }] = useDisclosure(false);
-  const [tournament, setTournament] = useLocalStorage({ key: 'selected-tournament', defaultValue: "" })
+  const [tournament, setTournament] = useLocalStorage({ key: STORAGE_KEYS.SELECTED_TOURNAMENT, defaultValue: "" })
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -93,7 +94,6 @@ export function AppLayout() {
     if (!tournament && data && data.length > 0) {
       const firstId = data[0].value;
       setTournament(firstId);
-      localStorage.setItem('selected-tournament', firstId);
     }
   }, [data, tournament]);
 
