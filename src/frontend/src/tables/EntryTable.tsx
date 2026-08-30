@@ -209,7 +209,7 @@ export default function EntryTable({ tournament, tournamentDetail, onlyMyEntries
                 // trick linter that these are used, for now. I'd rather see they're available
                 index;
                 event;
-                navigate(ROUTES.entryDetail(record.id));
+                navigate(ROUTES.entryDetail(record.id as string));
             }}
             sortStatus={sortStatus}
             onSortStatusChange={setSortStatus}
